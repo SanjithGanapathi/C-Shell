@@ -1,2 +1,0 @@
-This is the first line of the input file.
-This is the second line.

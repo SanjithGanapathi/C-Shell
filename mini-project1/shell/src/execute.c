@@ -4,63 +4,119 @@
 
 bool executeAtomicCmd(AtomicCmd * cmd) {
     if(!strcmp("hop", cmd->argv[0])) {
-        executeHop(cmd);
+        return executeHop(cmd);
     } else if(!strcmp("reveal", cmd->argv[0])) {
-        executeReveal(cmd); 
+        return executeReveal(cmd); 
     } else if(!strcmp("log", cmd->argv[0])) {
-//        executeLog(cmd);   
+//        return executeLog(cmd);   
     } else {
-        executeArbitaryCommands(cmd);
+        int f = fork();
+        if(f < 0) {
+            perror("fork");
+            return false;
+        } else if(f == 0) {
+            executeArbitaryCommands(cmd);
+        } else {
+            waitpid(f, NULL, 0);
+        }
     }
     return true;
 }
 
 bool executeArbitaryCommands(AtomicCmd * cmd) {
-    int f = fork();
-    if(f < 0) {
-        printf("Fork Failure\n");
-        exit(1);
-    } else if(f == 0) {
-        if(cmd->inputFile != NULL) {
-            int newFD = open(cmd->inputFile, O_RDONLY);
-            if(newFD == -1) {
-                printf("Error in open");
-                return false;
-            }
-            dup2(newFD, 0);
-            close(newFD);
+    if(cmd->inputFile != NULL) {
+        int newFD = open(cmd->inputFile, O_RDONLY);
+        if(newFD == -1) {
+            printf("Error in open");
+            return false;
         }
-
-        if(cmd->outputFile != NULL) {
-            int newFD;
-            if(cmd->append) newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            else newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if(newFD == -1) {
-                printf("Error in open");
-                return false;
-            }
-            dup2(newFD, 1);
-            close(newFD);
-        }
-        execvp(cmd->argv[0], cmd->argv);
-        printf("Execution Failure\n");
-        return false;
-    } else {
-        int status;
-        waitpid(f, &status, 0);
+        dup2(newFD, 0);
+        close(newFD);
     }
-    return true; 
+
+    if(cmd->outputFile != NULL) {
+        int newFD;
+        if(cmd->append) newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        else newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if(newFD == -1) {
+            printf("Error in open");
+            return false;
+        }
+        dup2(newFD, 1);
+        close(newFD);
+    }
+    execvp(cmd->argv[0], cmd->argv);
+    printf("Execution Failure\n");
+    exit(1);
+    return false;
 }
 
 bool executeCmdGroup(CmdGroup * cmd) {
-    int i = 0;
-    while(i < cmd->cmdCount) {
-        if(executeAtomicCmd(cmd->commands[i]) == false) {
-            printf("Error executing the cmdgroup\n");
-            return false;
-        }
-        i++;
+    if(cmd->cmdCount == 1) {
+        return executeAtomicCmd(cmd->commands[0]);
     }
+    
+    // Initially the input would be from the STDIN
+    int inputFD = 0;
+    // initialise pidArray for later waitpid calls
+    pid_t pidArray[cmd->cmdCount];
+    int pipeEnds[2];
+   
+    for(int i = 0; i<cmd->cmdCount; i++) {
+        // we only need to create for first n-1 no need for last one 
+        if(i < cmd->cmdCount-1) {
+            if(pipe(pipeEnds) == -1) {
+                perror("pipe");
+                return false;
+            }
+        }
+        
+        // fork to execute the pipe read and write
+        pidArray[i] = fork();
+
+        if(pidArray[i] < 0) {
+            printf("Fork Failure\n");
+            return false;
+        } else if(pidArray[i] == 0) {
+            // get the input from the previous pipe (for i == 0 inputFD is just STDIN)
+            if(inputFD != STDIN_FILENO) {
+                dup2(inputFD, STDIN_FILENO);
+                close(inputFD);
+            }
+
+            // now write the output to the write end of the pipe
+            if(i < cmd->cmdCount-1) {
+                dup2(pipeEnds[1], STDOUT_FILENO);
+                // close read end because not used
+                close(pipeEnds[0]);
+                // close write end because already dup2
+                close(pipeEnds[1]);
+            }
+
+            // Execute the command
+            executeAtomicCmd(cmd->commands[i]);
+            exit(1);
+        } else {
+            // just closing the inputFD just in case
+            if(inputFD != STDIN_FILENO) {
+                close(inputFD);
+            }
+
+            if(i < cmd->cmdCount - 1) {
+                // close the write end of the pipe 
+                close(pipeEnds[1]);
+                // set the read end of the pipe as the inputFD for the next process
+                inputFD = pipeEnds[0];
+            }
+        }
+    }
+
+
+    // the parent process waits for all the commands to finish executing or exiting
+    for(int i = 0; i < cmd->cmdCount; i++) {
+        waitpid(pidArray[i], NULL, 0);
+    }
+
     return true;
 }
 
