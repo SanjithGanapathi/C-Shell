@@ -56,9 +56,9 @@ void checkBackgroundJobs() {
         if(exitPID) {
             // job completed and exit status 0 normal exit
             if(WIFEXITED(status) && !WEXITSTATUS(status)) {
-                printf("%s with pid %d exited normally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+                fprintf(stderr, "%s with pid %d exited normally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
             } else {
-                printf("%s with pid %d exited abnormally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+                    fprintf(stderr, "%s with pid %d exited abnormally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
             }
             removeJob(i);
         }
@@ -222,7 +222,8 @@ bool executeCommand(ShellCmd * cmd, char * command) {
 
                 // Pass the correct name to initialiseJob
                 backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, job_name);
-                printf("[%d] %d\n", nextJobID, f);
+                //fprintf(stderr, "[%d] %d\n", nextJobID, f);
+//                rintf("[%d] %d\n", nextJobID, f);
                 jobCnt++;
                 nextJobID++;
             }
@@ -374,7 +375,12 @@ bool executeReveal(AtomicCmd * cmd) {
             maxFileCnt *= 2;
             files = realloc(files, sizeof(char*)*maxFileCnt);
         }
-        files[cnt++] = dirEntry->d_name;
+        files[cnt] = strdup(dirEntry->d_name);
+        if(files[cnt] == NULL) {
+            printf("Memory allocation error\n");
+            exit(EXIT_FAILURE);
+        }
+        cnt++;
     }
 
     qsort(files, cnt, sizeof(char *), compareStrings);
@@ -387,6 +393,9 @@ bool executeReveal(AtomicCmd * cmd) {
             if(i == cnt-1) printf("\n");
         }
     }
+
+    for (int i = 0; i < cnt; i++) free(files[i]);
+    free(files);
 
     closedir(targetDir);
     return true;

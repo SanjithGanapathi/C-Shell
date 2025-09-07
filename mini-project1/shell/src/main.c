@@ -37,10 +37,10 @@ int main() {
 
         checkBackgroundJobs();
         ShellCmd * parsedCmd = parseCommand(command);
-        if(parsedCmd) {
-            printf("Input is valid\n");
-        } else {
-            printf("Invalid input\n");
+        if(!parsedCmd) {
+            printf("Invalid Syntax!\n");
+            fflush(stdout);
+            continue;
         }
 /*
         for(int i = 0; i<parsedCmd->groupCount; i++) {
@@ -48,9 +48,9 @@ int main() {
         }
 */
         if(executeCommand(parsedCmd, command)) {
-            printf("Command executed succesfully\n");
+//            printf("Command executed succesfully\n");
         } else {
-            printf("Invalid Command\nExiting....\n");
+//            printf("Invalid Command\nExiting....\n");
             exit(1);
         }
     }

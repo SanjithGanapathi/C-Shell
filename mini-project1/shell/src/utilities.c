@@ -17,7 +17,6 @@ char * getSubstr(const char * str, int start, int len) {
 }
 
 int compareStrings(const void *a, const void *b) {
-    const char *string_a = *(const char **)a;
-    const char *string_b = *(const char **)b;
-    return strcmp(string_a, string_b);
+    return strcasecmp(*(const char **)a, *(const char **)b);
 }
+

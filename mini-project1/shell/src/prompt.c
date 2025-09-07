@@ -23,12 +23,12 @@ void printShellPrompt(char * homeDirectory) {
 
     if(commonDirectory && !strcmp(commonDirectory, homeDirectory)) {
         if(relDirectory && strlen(relDirectory) > 0) {
-            printf("<%s@%s:~%s>", username, hostname, relDirectory);
+            printf("<%s@%s:~%s> ", username, hostname, relDirectory);
         } else {
-            printf("<%s@%s:~>", username, hostname);
+            printf("<%s@%s:~> ", username, hostname);
         }
     } else {
-        printf("<%s@%s:%s>", username, hostname, currDirectory);
+        printf("<%s@%s:%s> ", username, hostname, currDirectory);
     }
 
     free(commonDirectory);

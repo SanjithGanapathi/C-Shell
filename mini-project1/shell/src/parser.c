@@ -120,7 +120,7 @@ void freeShellCmd(ShellCmd *shell_cmd) {
 
 AtomicCmd * parseAtomic(Token * toks, int * i) {
     if(toks[*i].type != TOK_NAME) {
-        printf("INVALID SYNTAX!!\n");
+//        printf("INVALID SYNTAX!!\n");
         return NULL;
     }
 
@@ -148,7 +148,7 @@ AtomicCmd * parseAtomic(Token * toks, int * i) {
             TokenType type = toks[*i].type;
             (*i)++;
             if(toks[*i].type != TOK_NAME) {
-                printf("Invalid Syntax");
+  //              printf("Invalid Syntax");
                 freeAtomicCmd(cmd);
                 return NULL;
             }
@@ -170,7 +170,7 @@ AtomicCmd * parseAtomic(Token * toks, int * i) {
             }
             (*i)++;
         } else {
-            printf("Invalid Syntax\n");
+//            printf("Invalid Syntax\n");
             freeAtomicCmd(cmd);
             return NULL;
         }
