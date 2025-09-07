@@ -2,6 +2,97 @@
 #include "../include/execute.h"
 #include "../include/utilities.h"
 
+// Static variables for Job handling
+static Job ** backgroundJobs = NULL;
+int jobCnt = 0;
+int jobCapacity = 10;
+
+// JOB CONTROL INITIALIZATION
+void initializeJobControl() {
+    jobCapacity = 10; // Initial capacity for 10 jobs
+    backgroundJobs = malloc(sizeof(Job*) * jobCapacity);
+    if (backgroundJobs == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+}
+
+// JOBS Related functions
+Job * initialiseJob(pid_t pid, int jobID, char * command) {
+    Job * newJob = (Job*)malloc(sizeof(Job));
+    newJob->pid = pid;
+    newJob->jobID = jobID;
+    newJob->cmdName = strdup(command);
+    return newJob;
+}
+
+void cleanupJobControl() {
+    for (int i = 0; i < jobCnt; i++) {
+        free(backgroundJobs[i]->cmdName);
+        free(backgroundJobs[i]);
+    }
+    free(backgroundJobs);
+}
+
+void removeJob(int index) { 
+    // free the specified index and the string for cmdname
+    free(backgroundJobs[index]->cmdName);
+    free(backgroundJobs[index]);
+
+    for(int i = index; i<jobCnt-1; i++) {
+        backgroundJobs[i] = backgroundJobs[i+1];
+    }
+    jobCnt--;
+}
+
+// this function is to check the status of background tasks without stopping them
+void checkBackgroundJobs() {
+    for(int i = jobCnt-1; i>=0; i--) {
+        int status;
+        // use waitpid with WNOHANG for returning immediately by just 
+        // checking running status and not waiting
+        int exitPID = waitpid(backgroundJobs[i]->pid, &status, WNOHANG);
+        // if exitPID is childPID != 0 then job completed
+        if(exitPID) {
+            // job completed and exit status 0 normal exit
+            if(WIFEXITED(status) && !WEXITSTATUS(status)) {
+                printf("%s with pid %d exited normally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+            } else {
+                printf("%s with pid %d exited abnormally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+            }
+            removeJob(i);
+        }
+    }
+}
+
+// EXECUTION Related Commands
+void runCommand(AtomicCmd * cmd) {
+    if(cmd->inputFile != NULL) {
+        int newFD = open(cmd->inputFile, O_RDONLY);
+        if(newFD == -1) {
+            printf("Error in open");
+            exit(1);
+        }
+        dup2(newFD, STDIN_FILENO);
+        close(newFD);
+    }
+
+    if(cmd->outputFile != NULL) {
+        int newFD;
+        if(cmd->append) newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        else newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if(newFD == -1) {
+            printf("Error in open");
+            exit(1);
+        }
+        dup2(newFD, STDOUT_FILENO);
+        close(newFD);
+    }
+    execvp(cmd->argv[0], cmd->argv);
+    perror(cmd->argv[0]);
+    exit(1);
+}
+
 bool executeAtomicCmd(AtomicCmd * cmd) {
     if(!strcmp("hop", cmd->argv[0])) {
         return executeHop(cmd);
@@ -13,9 +104,9 @@ bool executeAtomicCmd(AtomicCmd * cmd) {
         int f = fork();
         if(f < 0) {
             perror("fork");
-            return false;
+            exit(1);
         } else if(f == 0) {
-            executeArbitaryCommands(cmd);
+            runCommand(cmd);
         } else {
             waitpid(f, NULL, 0);
         }
@@ -23,33 +114,6 @@ bool executeAtomicCmd(AtomicCmd * cmd) {
     return true;
 }
 
-bool executeArbitaryCommands(AtomicCmd * cmd) {
-    if(cmd->inputFile != NULL) {
-        int newFD = open(cmd->inputFile, O_RDONLY);
-        if(newFD == -1) {
-            printf("Error in open");
-            return false;
-        }
-        dup2(newFD, 0);
-        close(newFD);
-    }
-
-    if(cmd->outputFile != NULL) {
-        int newFD;
-        if(cmd->append) newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        else newFD = open(cmd->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if(newFD == -1) {
-            printf("Error in open");
-            return false;
-        }
-        dup2(newFD, 1);
-        close(newFD);
-    }
-    execvp(cmd->argv[0], cmd->argv);
-    printf("Execution Failure\n");
-    exit(1);
-    return false;
-}
 
 bool executeCmdGroup(CmdGroup * cmd) {
     if(cmd->cmdCount == 1) {
@@ -57,7 +121,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
     }
     
     // Initially the input would be from the STDIN
-    int inputFD = 0;
+    int inputFD = STDIN_FILENO;
     // initialise pidArray for later waitpid calls
     pid_t pidArray[cmd->cmdCount];
     int pipeEnds[2];
@@ -67,7 +131,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
         if(i < cmd->cmdCount-1) {
             if(pipe(pipeEnds) == -1) {
                 perror("pipe");
-                return false;
+                exit(1);
             }
         }
         
@@ -76,7 +140,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
 
         if(pidArray[i] < 0) {
             printf("Fork Failure\n");
-            return false;
+            exit(1);
         } else if(pidArray[i] == 0) {
             // get the input from the previous pipe (for i == 0 inputFD is just STDIN)
             if(inputFD != STDIN_FILENO) {
@@ -93,9 +157,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
                 close(pipeEnds[1]);
             }
 
-            // Execute the command
-            executeAtomicCmd(cmd->commands[i]);
-            exit(1);
+            runCommand(cmd->commands[i]);
         } else {
             // just closing the inputFD just in case
             if(inputFD != STDIN_FILENO) {
@@ -124,11 +186,46 @@ void printCmd(CmdGroup * cmd) {
     // print the command as it is
 }
 
-bool executeCommand(ShellCmd * cmd) {
+
+bool executeCommand(ShellCmd * cmd, char * command) {
     int i = 0;
     while(i < cmd->groupCount) {
+        CmdGroup * group = cmd->groups[i];
         // Background execution stuff;
-        if(cmd->background) {
+        if(group->background) {
+            int f = fork();
+            if(f < 0) {
+                printf("Fork Failure\n");
+                exit(1);
+            } else if(f == 0) {
+                // because the background process should not be able to read from the terminal
+                int devNull = open("/dev/null", O_RDONLY);
+                dup2(devNull, STDIN_FILENO);
+                close(devNull);
+
+                executeCmdGroup(group);
+                // execvp will return and then exit
+                exit(0);
+            } else {
+                if(jobCnt >= jobCapacity) {
+                    jobCapacity *= 2;
+                    backgroundJobs = (Job **)realloc(backgroundJobs, sizeof(Job*)*jobCapacity);
+                    if(backgroundJobs == NULL) {
+                        printf("Realloc Failure\n");
+                        exit(1);
+                    }
+                }
+                // Get the last group, which is the one being backgrounded
+                CmdGroup *bg_group = cmd->groups[cmd->groupCount - 1];
+                // Use the name of the first command in that group for the job name
+                char *job_name = bg_group->commands[0]->argv[0];
+
+                // Pass the correct name to initialiseJob
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, job_name);
+                printf("[%d] %d\n", nextJobID, f);
+                jobCnt++;
+                nextJobID++;
+            }
         } else {
             if(executeCmdGroup(cmd->groups[i]) == false) {
                 printf("Error executing the cmdgroup\n");

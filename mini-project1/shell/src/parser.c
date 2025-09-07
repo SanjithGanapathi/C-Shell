@@ -1,6 +1,9 @@
 #include "../include/shell.h"
 #include "../include/parser.h"
 
+// ... (tokenizeInput, freeTokens, and all free... functions are correct) ...
+// ... (parseAtomic and parseCmdGroup are also correct) ...
+
 void freeTokens(Token *tokens) {
     if(!tokens) return;
     for(int i = 0; tokens[i].type != TOK_END; i++) {
@@ -80,12 +83,10 @@ Token *tokenizeInput(const char *input) {
     }
 
     tokens[tokcnt] = (Token){TOK_END, NULL};
-//    printTokens(tokens);
     return tokens;
 }
 
 
-// Frees memory for a single AtomicCmd
 void freeAtomicCmd(AtomicCmd *cmd) {
     if(!cmd) return;
     if(cmd->argv) {
@@ -99,7 +100,6 @@ void freeAtomicCmd(AtomicCmd *cmd) {
     free(cmd);
 }
 
-// Frees memory for a CmdGroup, including all its AtomicCmds
 void freeCmdGroup(CmdGroup *group) {
     if(!group) return;
     for (int i = 0; i < group->cmdCount; i++) {
@@ -109,7 +109,6 @@ void freeCmdGroup(CmdGroup *group) {
     free(group);
 }
 
-// Public function to free the entire ShellCmd structure
 void freeShellCmd(ShellCmd *shell_cmd) {
     if(!shell_cmd) return;
     for (int i = 0; i < shell_cmd->groupCount; i++) {
@@ -135,7 +134,6 @@ AtomicCmd * parseAtomic(Token * toks, int * i) {
           toks[*i].type != TOK_SEMCOL &&
           toks[*i].type != TOK_END) {
         if(toks[*i].type == TOK_NAME) {
-            // Reallocate space if no space left for next tokens
             if(argc == maxArgcnt-1) {
                 maxArgcnt *= 2;
                 cmd->argv = realloc(cmd->argv, sizeof(char*)*maxArgcnt);
@@ -148,29 +146,27 @@ AtomicCmd * parseAtomic(Token * toks, int * i) {
             (*i)++;
         } else if(toks[*i].type == TOK_INPUT || toks[*i].type == TOK_OUTPUT || toks[*i].type == TOK_APPEND) {
             TokenType type = toks[*i].type;
-            (*i)++; //Consume the '>', '<', ">>"
+            (*i)++;
             if(toks[*i].type != TOK_NAME) {
                 printf("Invalid Syntax");
                 freeAtomicCmd(cmd);
                 return NULL;
             }
             if(type == TOK_INPUT) {
-                // Multiple redirection detected
-                if(cmd->outputFile != NULL) {
-                    printf("Syntax Error: Ambiguous output redirect.\n");
+                if(cmd->inputFile != NULL) {
+                    printf("Syntax Error: Ambiguous input redirect.\n");
                     freeAtomicCmd(cmd);
                     return NULL;
                 }
-                cmd->inputFile = strdup(toks[*i].value); // set inputfile
+                cmd->inputFile = strdup(toks[*i].value);
             } else {
-                // Multiple redirection detected
                 if(cmd->outputFile != NULL) {
                     printf("Syntax Error: Ambiguous output redirect.\n");
                     freeAtomicCmd(cmd);
                     return NULL;
                 }
-                cmd->outputFile = strdup(toks[*i].value); // set outputfile
-                cmd->append = (type == TOK_APPEND); // if token is >> then set cmd->append to true;
+                cmd->outputFile = strdup(toks[*i].value);
+                cmd->append = (type == TOK_APPEND);
             }
             (*i)++;
         } else {
@@ -179,17 +175,16 @@ AtomicCmd * parseAtomic(Token * toks, int * i) {
             return NULL;
         }
     }
-    cmd->argv[argc] = NULL; // now null terminate string
+    cmd->argv[argc] = NULL;
     return cmd;
 }
 
 CmdGroup *parseCmdGroup(Token *toks, int *i) {
-    // first allocate space to the CmdGroup
     CmdGroup * group = (CmdGroup*)calloc(1, sizeof(CmdGroup));
     int maxCmdCnt = INIT_CMD_SIZE;
     group->commands = malloc(sizeof(AtomicCmd *) * maxCmdCnt);
 
-    AtomicCmd * initialAtomic = parseAtomic(toks, i); // according to grammar it has to start with atomic
+    AtomicCmd * initialAtomic = parseAtomic(toks, i);
     if(initialAtomic == NULL) {
         free(group->commands);
         free(group);
@@ -197,9 +192,8 @@ CmdGroup *parseCmdGroup(Token *toks, int *i) {
     }
     group->commands[(group->cmdCount)++] = initialAtomic;
 
-    // parse each atomic in the cmdgroup separated by '|'
     while(toks[*i].type == TOK_PIPE) {
-        (*i)++; // consume the pipe command
+        (*i)++;
         AtomicCmd * nextAtomic = parseAtomic(toks, i);
         if(nextAtomic == NULL) {
             freeCmdGroup(group);
@@ -221,7 +215,6 @@ CmdGroup *parseCmdGroup(Token *toks, int *i) {
 ShellCmd * parseCommand(const char * input) {
     Token * toks = tokenizeInput(input);
     if(toks == NULL) {
-        printf("Error in tokenizing\n");
         return NULL;
     }
     int i = 0;
@@ -229,46 +222,60 @@ ShellCmd * parseCommand(const char * input) {
     ShellCmd * cmd = (ShellCmd*)calloc(1, sizeof(ShellCmd));
     int maxGroupCnt = INIT_GRP_SIZE;
     cmd->groups = malloc(sizeof(CmdGroup*) * maxGroupCnt);
-    CmdGroup * firstCmd = parseCmdGroup(toks, &i);
 
-    if(firstCmd == NULL) {
+    if(cmd->groups == NULL) {
+        free(cmd);
+        freeTokens(toks);
+        exit(EXIT_FAILURE);
+    }
+    
+    CmdGroup * currentGroup = parseCmdGroup(toks, &i);
+    if(currentGroup == NULL) {
         free(cmd->groups);
         free(cmd);
         freeTokens(toks);
         return NULL;
     }
+    cmd->groups[(cmd->groupCount)++] = currentGroup;
 
-    cmd->groups[(cmd->groupCount)++] = firstCmd;
+    // This loop parses a sequence of command groups separated by ';' or '&'.
     while(toks[i].type == TOK_AND || toks[i].type == TOK_SEMCOL) {
-        TokenType separator = toks[i].type;
-        if(separator == TOK_AND && toks[i+1].type == TOK_END) {
-            cmd->background = true;
-            i++; // Consume the '&'
+
+        if(toks[i].type == TOK_AND) {
+            cmd->groups[cmd->groupCount-1]->background = true;
+        }
+
+        i++; // Consume the TOK_AND || TOK_SEMCOL
+
+        if(toks[i].type == TOK_END) {
             break;
         }
-        i++; // Consume the separator
-        CmdGroup * nextCmd = parseCmdGroup(toks, &i);
-        if(nextCmd == NULL) {
+
+        CmdGroup * currentCmd = parseCmdGroup(toks, &i);
+        if(currentCmd == NULL) {
             freeShellCmd(cmd);
             freeTokens(toks);
             return NULL;
         }
+
         if(cmd->groupCount >= maxGroupCnt) {
-            maxGroupCnt *= 2; // Resize if no enough space to store all the commands
+            maxGroupCnt *= 2;
             cmd->groups = realloc(cmd->groups, sizeof(CmdGroup*) * maxGroupCnt);
             if(cmd->groups == NULL) {
                 printf("Realloc Failure\n");
                 exit(EXIT_FAILURE);
             }
         }
-        cmd->groups[(cmd->groupCount)++] = nextCmd;
+        cmd->groups[(cmd->groupCount)++] = currentCmd;
     }
-    if(toks[i].type != TOK_END) {
-        printf("Syntax Error\n");
+
+    if (toks[i].type != TOK_END) {
+        printf("Syntax Error: Expected ';' or '&' between commands.\n");
         freeShellCmd(cmd);
         freeTokens(toks);
         return NULL;
     }
+
     freeTokens(toks);
     return cmd;
 }

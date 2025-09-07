@@ -40,14 +40,13 @@ typedef struct AtomicCmd {
 typedef struct CmdGroup {
     AtomicCmd **commands;
     int cmdCount;
+    bool background;     // trailing `&`
 } CmdGroup;
 
 // Represents a full shell command: may have multiple groups, bg, &&, etc.
 typedef struct ShellCmd {
     CmdGroup **groups;
     int groupCount;
-    bool background;     // trailing `&`
-    // later: you can add info for && sequencing
 } ShellCmd;
 
 // tokenizing functions

@@ -14,6 +14,14 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 
+typedef struct {
+    pid_t pid;          
+    int jobID;         
+    char* cmdName; 
+} Job;
+
 extern char * homeDirectory; // This is to declare variables completely global
 extern char * prevDir; // This is to declare variables completely global
+extern int nextJobID; // This is to declare the next job ID global
+extern int jobCapacity; // This is to declare the next job ID global
 #endif 
