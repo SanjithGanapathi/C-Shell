@@ -10,6 +10,7 @@ char * homeDirectory = NULL;
 char * prevDir = NULL;
 int nextJobID = 1;
 Job **backgroundJobs = NULL;
+char * cmdHistoryFile = NULL;
 
 int main() {
     char *command = (char*)malloc(MAX_COMMAND);
@@ -26,14 +27,19 @@ int main() {
         exit(1);
     }
 
-
+    cmdHistoryFile = (char *)malloc(sizeof(char)*PATH_MAX);
+    snprintf(cmdHistoryFile, PATH_MAX, "%s/.myshell_history", homeDirectory);
+    loadHistory();
     initializeJobControl();
     while(true) {
         printShellPrompt(homeDirectory);
         if(fgets(command, MAX_COMMAND, stdin) == NULL) continue;
 
         command[strcspn(command, "\n")] = '\0';
-        if(strcmp(command, "exit") == 0) break;
+        if(strcmp(command, "exit") == 0) {
+            saveToLogFile();
+            break;
+        }
 
         checkBackgroundJobs();
         ShellCmd * parsedCmd = parseCommand(command);
@@ -49,12 +55,9 @@ int main() {
 */
         if(executeCommand(parsedCmd, command)) {
 //            printf("Command executed succesfully\n");
-        } else {
-//            printf("Invalid Command\nExiting....\n");
-            exit(1);
-        }
+            addCmd(command);
+        } 
     }
     free(command);
     return 0;
 }
-
