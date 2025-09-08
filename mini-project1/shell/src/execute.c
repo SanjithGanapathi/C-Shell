@@ -7,6 +7,11 @@ static Job ** backgroundJobs = NULL;
 int jobCnt = 0;
 int jobCapacity = 10;
 
+// Static variables for Log History
+static char * cmdLog[MAX_HISTORY];
+static int logCnt = 0;
+static int nextLog = 0;
+
 // JOB CONTROL INITIALIZATION
 void initializeJobControl() {
     jobCapacity = 10; // Initial capacity for 10 jobs
@@ -89,7 +94,7 @@ void runCommand(AtomicCmd * cmd) {
         close(newFD);
     }
     execvp(cmd->argv[0], cmd->argv);
-    perror(cmd->argv[0]);
+    printf("Command not found!\n");
     exit(1);
 }
 
@@ -99,7 +104,7 @@ bool executeAtomicCmd(AtomicCmd * cmd) {
     } else if(!strcmp("reveal", cmd->argv[0])) {
         return executeReveal(cmd); 
     } else if(!strcmp("log", cmd->argv[0])) {
-//        return executeLog(cmd);   
+        return executeLog(cmd);   
     } else {
         int f = fork();
         if(f < 0) {
@@ -107,8 +112,11 @@ bool executeAtomicCmd(AtomicCmd * cmd) {
             exit(1);
         } else if(f == 0) {
             runCommand(cmd);
+            return false;
         } else {
-            waitpid(f, NULL, 0);
+            int status;
+            waitpid(f, &status, 0);
+            return WIFEXITED(status) && WEXITSTATUS(status) == 0;
         }
     }
     return true;
@@ -131,7 +139,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
         if(i < cmd->cmdCount-1) {
             if(pipe(pipeEnds) == -1) {
                 perror("pipe");
-                exit(1);
+                return false;
             }
         }
         
@@ -140,7 +148,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
 
         if(pidArray[i] < 0) {
             printf("Fork Failure\n");
-            exit(1);
+            return false;
         } else if(pidArray[i] == 0) {
             // get the input from the previous pipe (for i == 0 inputFD is just STDIN)
             if(inputFD != STDIN_FILENO) {
@@ -174,18 +182,22 @@ bool executeCmdGroup(CmdGroup * cmd) {
     }
 
 
+    int finStatus; // Final status
     // the parent process waits for all the commands to finish executing or exiting
     for(int i = 0; i < cmd->cmdCount; i++) {
-        waitpid(pidArray[i], NULL, 0);
+        int status;
+        waitpid(pidArray[i], &status, 0);
+        if(i == cmd->cmdCount-1) {
+            finStatus = status;
+        }
     }
 
-    return true;
+    return WIFEXITED(finStatus) && WEXITSTATUS(finStatus) == 0;
 }
 
 void printCmd(CmdGroup * cmd) {
     // print the command as it is
 }
-
 
 bool executeCommand(ShellCmd * cmd, char * command) {
     int i = 0;
@@ -196,6 +208,7 @@ bool executeCommand(ShellCmd * cmd, char * command) {
             int f = fork();
             if(f < 0) {
                 printf("Fork Failure\n");
+                return false;
                 exit(1);
             } else if(f == 0) {
                 // because the background process should not be able to read from the terminal
@@ -203,7 +216,7 @@ bool executeCommand(ShellCmd * cmd, char * command) {
                 dup2(devNull, STDIN_FILENO);
                 close(devNull);
 
-                executeCmdGroup(group);
+                return executeCmdGroup(group);
                 // execvp will return and then exit
                 exit(0);
             } else {
@@ -229,7 +242,7 @@ bool executeCommand(ShellCmd * cmd, char * command) {
             }
         } else {
             if(executeCmdGroup(cmd->groups[i]) == false) {
-                printf("Error executing the cmdgroup\n");
+  //              printf("Error executing the cmdgroup\n");
                 return false;
             }
         }
@@ -269,7 +282,7 @@ bool executeHop(AtomicCmd * cmd) {
 
         if(!strcmp(symbol, "-")) {
             if(prevDir == NULL) {
-                printf("OLDPWD not set\n");
+    //            printf("OLDPWD not set\n");
             } else {
                 if(chdir(prevDir) == -1) {
                     printf("No such directory\n");
@@ -344,7 +357,7 @@ bool executeReveal(AtomicCmd * cmd) {
         targetPath = homeDirectory;
     } else if(!strcmp(targetPath, "-")) {
         if(prevDir == NULL) {
-            printf("OLDPWD not set\n");
+            printf("No such directory!\n");
             return false;
         }
         targetPath = prevDir;
@@ -394,9 +407,125 @@ bool executeReveal(AtomicCmd * cmd) {
         }
     }
 
-    for (int i = 0; i < cnt; i++) free(files[i]);
+    for (int i = 0; i<cnt; i++) free(files[i]);
     free(files);
 
     closedir(targetDir);
     return true;
 }
+// In src/execute.c, place this function before initializeHistory.
+
+// This function loads the command history from the persistent file into memory.
+void loadHistory() {
+    FILE *file = fopen(cmdHistoryFile, "r");
+    if (file == NULL) {
+        return;
+    }
+
+    char line_buffer[PATH_MAX]; // A buffer to read each line into.
+
+    // Read the file line by line.
+    while(fgets(line_buffer, sizeof(line_buffer), file) != NULL) {
+        // Remove the trailing newline character that fgets reads.
+        line_buffer[strcspn(line_buffer, "\n")] = '\0';
+
+        // Don't add empty lines from the history file.
+        if(strlen(line_buffer) > 0) {
+            addCmd(line_buffer);
+        }
+    }
+
+    fclose(file);
+}
+
+// This function writes the contents of the in-memory log to the persistent file.
+void saveToLogFile() {
+    // Open the file in write mode, which overwrites it completely.
+    FILE *file = fopen(cmdHistoryFile, "w");
+    if(file == NULL) {
+        return;
+    }
+
+    // Correctly loop through the circular buffer from oldest to newest.
+    int start_index = (logCnt == MAX_HISTORY) ? nextLog : 0;
+    for(int i = 0; i<logCnt; i++) {
+        int current_index = (start_index + i) % MAX_HISTORY;
+        fprintf(file, "%s\n", cmdLog[current_index]);
+    }
+
+    fclose(file);
+}
+
+// Helper function to add a command to our in-memory history log.
+// It handles the circular buffer logic, the max command limit, and duplicate prevention.
+void addCmd(const char* command) {
+    // Do not store any shell_cmd if the command is "log" itself.
+    if(strncmp(command, "log", 3) == 0 && (command[3] == ' ' || command[3] == '\0')) {
+        return;
+    }
+
+    //Do not store a command if it is identical to the previously executed one.
+    if(logCnt > 0) {
+        // Calculate the index of the most recently added command in the circular buffer.
+        int last_cmd_index = (nextLog - 1 + MAX_HISTORY) % MAX_HISTORY;
+        if(strcmp(cmdLog[last_cmd_index], command) == 0) {
+            return; // It's a duplicate, so we do nothing.
+        }
+    }
+
+    // If the buffer is full and we're about to overwrite an old command,
+    // we must free the memory of that old command string first to prevent a leak.
+    if(cmdLog[nextLog] != NULL) {
+        free(cmdLog[nextLog]);
+    }
+
+    // Store a permanent copy of the new command string.
+    cmdLog[nextLog] = strdup(command);
+
+    // Move the "next slot" pointer, wrapping around if necessary.
+    nextLog = (nextLog + 1) % MAX_HISTORY;
+
+    // The history_count should not exceed the maximum.
+    if(logCnt < MAX_HISTORY) {
+        logCnt++;
+    }
+}
+
+bool executeLog(AtomicCmd * cmd) {
+    if(cmd->argv[1] == NULL) {
+        int start_index = (logCnt == MAX_HISTORY) ? nextLog : 0;
+        for(int i = 0; i<logCnt; i++) {
+            int current_index = (start_index + i) % MAX_HISTORY;
+            printf("%s\n", cmdLog[current_index]);
+        }
+    } else if(!strcmp(cmd->argv[1], "purge")) {
+        for(int i = 0; i<logCnt; i++) {
+            free(cmdLog[i]);
+            cmdLog[i] = NULL;
+        }
+        logCnt = 0;
+        nextLog = 0;
+    } else if(!strcmp(cmd->argv[1], "execute")) {
+        // No Index given
+        if(cmd->argv[2] == NULL) {
+            fprintf(stderr, "log: requires index\n");
+            return false;
+        }
+
+        int logIndex = atoi(cmd->argv[2]); // Convert to integer
+        if(logIndex <= 0 || logIndex > logCnt) {
+            fprintf(stderr, "log: invalid index\n");
+            return false;
+        }
+        
+        char * commandInLog = cmdLog[logIndex];
+        ShellCmd * parsedCmd = parseCommand(commandInLog);
+
+        if(parsedCmd) {
+            executeCommand(parsedCmd, commandInLog);
+            freeShellCmd(parsedCmd);
+        }
+    }
+    return true;
+}
+

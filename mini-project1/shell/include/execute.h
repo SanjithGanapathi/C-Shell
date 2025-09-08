@@ -6,6 +6,7 @@
 
 #define MID_PATH_MAX 1000
 #define maxBackgroundCnt 100
+#define MAX_HISTORY 15
 
 void initializeJobControl();
 bool executeCommand(ShellCmd * cmd, char * command); 
@@ -15,5 +16,7 @@ bool executeLog(AtomicCmd * cmd);
 bool executeArbitaryCommands(AtomicCmd * cmd);
 void runCommand(AtomicCmd * cmd);
 void checkBackgroundJobs();
+void addCmd(const char * command);
+void saveToLogFile();
+void loadHistory();
 #endif 
-
