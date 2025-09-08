@@ -112,7 +112,7 @@ bool executeAtomicCmd(AtomicCmd * cmd) {
             exit(1);
         } else if(f == 0) {
             runCommand(cmd);
-            return false;
+         //   return false;
         } else {
             int status;
             waitpid(f, &status, 0);
@@ -139,7 +139,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
         if(i < cmd->cmdCount-1) {
             if(pipe(pipeEnds) == -1) {
                 perror("pipe");
-                return false;
+                exit(1);
             }
         }
         
@@ -148,7 +148,7 @@ bool executeCmdGroup(CmdGroup * cmd) {
 
         if(pidArray[i] < 0) {
             printf("Fork Failure\n");
-            return false;
+            exit(1);
         } else if(pidArray[i] == 0) {
             // get the input from the previous pipe (for i == 0 inputFD is just STDIN)
             if(inputFD != STDIN_FILENO) {
@@ -182,17 +182,18 @@ bool executeCmdGroup(CmdGroup * cmd) {
     }
 
 
-    int finStatus; // Final status
+//    int finStatus; // Final status
     // the parent process waits for all the commands to finish executing or exiting
     for(int i = 0; i < cmd->cmdCount; i++) {
         int status;
         waitpid(pidArray[i], &status, 0);
-        if(i == cmd->cmdCount-1) {
-            finStatus = status;
-        }
+  //      if(i == cmd->cmdCount-1) {
+  //          finStatus = status;
+  //      }
     }
 
-    return WIFEXITED(finStatus) && WEXITSTATUS(finStatus) == 0;
+    return true;
+//    return WIFEXITED(finStatus) && WEXITSTATUS(finStatus) == 0;
 }
 
 void printCmd(CmdGroup * cmd) {
@@ -216,7 +217,7 @@ bool executeCommand(ShellCmd * cmd, char * command) {
                 dup2(devNull, STDIN_FILENO);
                 close(devNull);
 
-                return executeCmdGroup(group);
+                executeCmdGroup(group);
                 // execvp will return and then exit
                 exit(0);
             } else {
