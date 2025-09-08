@@ -14,8 +14,7 @@
 #include<netinet/in.h>
 #include<sys/select.h>
 #include<errno.h>
-
-#define MAX_DATA_SIZE 1024
+#include<sys/time.h> // For gettimeofday
 
 // Define S.H.A.M. packet flags
 #define SYN 0x1
@@ -28,28 +27,51 @@
 #define WINDOW_SIZE 10    // Sender's fixed sliding window size (in packets)
 #define RTO_MS 500        // Retransmission Timeout in milliseconds
 #define MAX_BUFFER_SIZE 2048
+#define MAX_DATA_SIZE 2048
 
+// Use __attribute__((packed)) to prevent compiler padding which corrupts network packets
 typedef struct sham_header {
-    uint32_t seq_num; // Sequence Number
-    uint32_t ack_num; // Acknowledgment Number
-    uint16_t flags; // Control flags (SYN, ACK, FIN)
-    uint16_t window_size; // Flow control window size
-} sham_header;
+    uint32_t seq_num;
+    uint32_t ack_num;
+    uint16_t flags;
+    uint16_t window_size;
+} __attribute__((packed)) sham_header;
 
-// Packet struct Abstraction with TCP headers
 typedef struct Packet {
     sham_header header;
-    char data[MAX_DATA_SIZE];
-} Packet;
+    char data[PAYLOAD_SIZE];
+} __attribute__((packed)) Packet;
 
-// Packet information (Packet, Timesent, packet length)
+// Packet information for sender's window buffer
 typedef struct sent_packet_info {
     Packet packet;
     struct timeval time_sent;
     size_t packet_len;
+    bool acked;
 } sent_packet_info;
 
-// Functionalities
-void packetDebugPrint(Packet * packet, const char * direction); // debug fn for Packet
+// Packet information for receiver's out-of-order buffer
+typedef struct received_packet_info {
+    Packet packet;
+    size_t len;
+    bool received;
+} received_packet_info;
+
+
+// A helper function to print packet details for debugging
+void packetDebugPrint(Packet *packet, const char *direction) {
+    uint16_t flags = ntohs(packet->header.flags);
+    printf("%s packet: | ", direction);
+    printf("Seq: %u | ", ntohl(packet->header.seq_num));
+    printf("Ack: %u | ", ntohl(packet->header.ack_num));
+    printf("Flags: ");
+    if (flags & SYN) printf("SYN ");
+    if (flags & ACK) printf("ACK ");
+    if (flags & FIN) printf("FIN ");
+    if (flags & FILENAME_FLAG) printf("FILENAME ");
+    printf("| Win: %u |\n", ntohs(packet->header.window_size));
+}
 
 #endif
+
+

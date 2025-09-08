@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
     char *output_file_name = NULL;
     double loss_rate = 0.0;
 
-    // Check for chat mode
     for (int i = 3; i < argc; i++) {
         if (strcmp(argv[i], "--chat") == 0) {
             chat_mode = 1;
@@ -25,9 +24,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (chat_mode) {
-        if (argc > 4) {
-            loss_rate = atof(argv[4]);
-        }
+        if (argc > 4) loss_rate = atof(argv[4]);
         printf("[CONFIG] Mode: Chat | Loss Rate: %.2f\n", loss_rate);
     } else { // File Transfer Mode
         if (argc < 5) {
@@ -36,33 +33,24 @@ int main(int argc, char *argv[]) {
         }
         input_file = argv[3];
         output_file_name = argv[4];
-        if (argc > 5) {
-            loss_rate = atof(argv[5]);
-        }
+        if (argc > 5) loss_rate = atof(argv[5]);
         printf("[CONFIG] Mode: File Transfer | Input: %s | Output: %s | Loss Rate: %.2f\n", input_file, output_file_name, loss_rate);
     }
-    
-    // Seed the random number generator
-    srand(time(NULL));
 
-    // --- Socket Creation and Setup ---
+    srand(time(NULL));
     int sockfd;
     struct sockaddr_in server_addr;
     socklen_t server_len = sizeof(server_addr);
-    Packet send_packet;
-    Packet recv_packet;
+    Packet send_packet, recv_packet;
 
-    // Create a UDP socket
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    // Clear and set server address information
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
-    // Convert text IP address to binary format
     if (inet_pton(AF_INET, server_ip, &server_addr.sin_addr) <= 0) {
         perror("invalid server IP address");
         close(sockfd);
@@ -71,108 +59,231 @@ int main(int argc, char *argv[]) {
 
     printf("[STATUS] Client starting up...\n");
 
-    // --- Three-Way Handshake with Retries ---
+    // --- Three-Way Handshake ---
     int handshake_attempts = 0;
     const int MAX_HANDSHAKE_ATTEMPTS = 3;
-    int handshake_success = 0;
-    uint32_t client_seq_num_x = rand() % 10000; // Generate a random initial sequence number
+    bool handshake_success = false;
+    uint32_t client_seq_num_x = rand() % 10000;
 
     while (handshake_attempts < MAX_HANDSHAKE_ATTEMPTS && !handshake_success) {
         handshake_attempts++;
-
-        // 1. Send SYN to Server
         memset(&send_packet, 0, sizeof(send_packet));
         send_packet.header.seq_num = htonl(client_seq_num_x);
         send_packet.header.flags = htons(SYN);
-        send_packet.header.window_size = htons(5000); // Client's initial buffer size
-
+        send_packet.header.window_size = htons(MAX_BUFFER_SIZE);
         printf("\n[HANDSHAKE ATTEMPT %d] Step 1: Sending SYN\n", handshake_attempts);
         packetDebugPrint(&send_packet, "-> SEND");
+        sendto(sockfd, &send_packet, sizeof(send_packet.header), 0, (const struct sockaddr *)&server_addr, server_len);
 
-        if (sendto(sockfd, &send_packet, sizeof(send_packet.header), 0, (const struct sockaddr *)&server_addr, server_len) < 0) {
-            perror("sendto failed for SYN packet");
-            continue; // Try again
-        }
-        
-        // 2. Wait for SYN-ACK with a timeout
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(sockfd, &readfds);
-
-        struct timeval timeout;
-        timeout.tv_sec = 2; // 2-second timeout
-        timeout.tv_usec = 0;
-
+        struct timeval timeout = { .tv_sec = 2, .tv_usec = 0 };
         int activity = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
-        
-        if (activity < 0) {
-            perror("select error during handshake");
-            break; 
-        }
 
-        if (activity == 0) {
-            printf("[TIMEOUT] No SYN-ACK received from server.\n");
-            continue; // This will trigger the next attempt
-        }
+        if (activity == 0) { printf("[TIMEOUT] No SYN-ACK received.\n"); continue; }
+        if (activity < 0) { perror("select error"); break; }
 
-        // If we're here, data is ready to be read
-        ssize_t len = recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
-        if (len < 0) {
-            perror("recvfrom failed while waiting for SYN-ACK");
-            continue; // Try again
-        }
-
-        // Validate the SYN-ACK packet
-        uint16_t received_flags = ntohs(recv_packet.header.flags);
-        uint32_t received_ack_num = ntohl(recv_packet.header.ack_num);
-
-        if ((received_flags == (SYN | ACK)) && (received_ack_num == client_seq_num_x + 1)) {
+        recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
+        if ((ntohs(recv_packet.header.flags) == (SYN | ACK)) && (ntohl(recv_packet.header.ack_num) == client_seq_num_x + 1)) {
             printf("[HANDSHAKE] Step 2: Received valid SYN-ACK\n");
             packetDebugPrint(&recv_packet, "<- RECV");
-            handshake_success = 1;
-        } else {
-            fprintf(stderr, "[ERROR] Invalid SYN-ACK received from server.\n");
-            // We'll let the loop retry
-        }
+            handshake_success = true;
+        } else { fprintf(stderr, "[ERROR] Invalid SYN-ACK received.\n"); }
     }
 
     if (!handshake_success) {
-        fprintf(stderr, "[FATAL] Handshake failed after %d attempts. Exiting.\n", MAX_HANDSHAKE_ATTEMPTS);
+        fprintf(stderr, "[FATAL] Handshake failed. Exiting.\n");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
-    // Store server's sequence number for the final ACK
     uint32_t server_seq_num_y = ntohl(recv_packet.header.seq_num);
-
-    // 3. Send final ACK to Server
     memset(&send_packet, 0, sizeof(send_packet));
     send_packet.header.seq_num = htonl(client_seq_num_x + 1);
     send_packet.header.ack_num = htonl(server_seq_num_y + 1);
     send_packet.header.flags = htons(ACK);
-    send_packet.header.window_size = htons(5000);
-
+    send_packet.header.window_size = htons(MAX_BUFFER_SIZE);
     printf("[HANDSHAKE] Step 3: Sending final ACK\n");
     packetDebugPrint(&send_packet, "-> SEND");
+    sendto(sockfd, &send_packet, sizeof(send_packet.header), 0, (const struct sockaddr *)&server_addr, server_len);
 
-    if (sendto(sockfd, &send_packet, sizeof(send_packet.header), 0, (const struct sockaddr *)&server_addr, server_len) < 0) {
-        perror("sendto failed for final ACK");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
-
-    printf("\n[STATUS] Connection established with %s:%d.\n", server_ip, port);
-    printf("---------------------------------------------\n");
+    printf("\n[STATUS] Connection established.\n---------------------------------------------\n");
     
-    // Application logic will now depend on the mode
+    uint32_t base_seq = client_seq_num_x + 1;
+    uint32_t next_seq = client_seq_num_x + 1;
+    uint32_t receiver_window = ntohs(recv_packet.header.window_size);
+
     if (chat_mode) {
-        printf("[INFO] Chat mode active. Ready for user input.\n");
-        // TODO: Implement chat logic using select()
+        printf("[INFO] Chat mode active. Type '/quit' to exit.\n> ");
+        fflush(stdout);
+
+        int keep_chatting = 1;
+        uint32_t current_seq_num = client_seq_num_x + 1;
+
+        while (keep_chatting) {
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(STDIN_FILENO, &readfds); // Monitor keyboard
+            FD_SET(sockfd, &readfds);      // Monitor socket
+
+            int max_fd = (STDIN_FILENO > sockfd) ? STDIN_FILENO : sockfd;
+            int activity = select(max_fd + 1, &readfds, NULL, NULL, NULL);
+
+            if ((activity < 0) && (errno != EINTR)) {
+                perror("select error");
+                break;
+            }
+
+            // Check for keyboard input
+            if (FD_ISSET(STDIN_FILENO, &readfds)) {
+                char input_buffer[MAX_DATA_SIZE];
+                if (fgets(input_buffer, sizeof(input_buffer), stdin) != NULL) {
+                    if (strncmp(input_buffer, "/quit", 5) == 0) {
+                        printf("[INFO] Quit command received. Initiating termination...\n");
+                        keep_chatting = 0; // Exit the loop to start termination
+                        continue;
+                    }
+
+                    memset(&send_packet, 0, sizeof(send_packet));
+                    strncpy(send_packet.data, input_buffer, sizeof(send_packet.data) - 1);
+                    size_t msg_len = strlen(send_packet.data);
+
+                    current_seq_num += msg_len;
+                    send_packet.header.seq_num = htonl(current_seq_num);
+
+                    sendto(sockfd, &send_packet, sizeof(send_packet.header) + msg_len, 0, (const struct sockaddr *)&server_addr, server_len);
+                    printf("> ");
+                    fflush(stdout);
+                }
+            }
+
+            // Check for network input
+            if (FD_ISSET(sockfd, &readfds)) {
+                ssize_t len = recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
+                if (len > 0) {
+                    printf("\nServer: %s> ", recv_packet.data);
+                    fflush(stdout);
+                }
+            }
+        }
     } else {
-        printf("[INFO] File transfer mode active. Preparing to send '%s'.\n", input_file);
-        // TODO: Implement file transfer logic
+        // --- FILE TRANSFER MODE (SENDER) ---
+        FILE *file = fopen(input_file, "rb");
+        if (!file) {
+            perror("Failed to open input file");
+            close(sockfd); return 1;
+        }
+        
+        printf("[TRANSFER] Sending output filename: %s\n", output_file_name);
+        memset(&send_packet, 0, sizeof(send_packet));
+        next_seq += 1; // Increment for this control packet
+        send_packet.header.seq_num = htonl(next_seq);
+        send_packet.header.flags = htons(FILENAME_FLAG | ACK);
+        strncpy(send_packet.data, output_file_name, PAYLOAD_SIZE - 1);
+        sendto(sockfd, &send_packet, sizeof(send_packet.header) + strlen(output_file_name) + 1, 0, (const struct sockaddr*)&server_addr, server_len);
+        
+        recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
+        base_seq = ntohl(recv_packet.header.ack_num);
+        next_seq = base_seq;
+        
+        printf("[TRANSFER] Starting data transmission.\n");
+        sent_packet_info window_buffer[WINDOW_SIZE] = {0};
+        bool file_done = false;
+
+        while (!file_done || base_seq < next_seq) {
+            // --- Sending phase: send new packets if window allows ---
+            while (( (next_seq - base_seq) / PAYLOAD_SIZE < WINDOW_SIZE) && 
+                   ( (next_seq - base_seq) < receiver_window ) && 
+                   !file_done) {
+                
+                char file_buf[PAYLOAD_SIZE];
+                size_t bytes_read = fread(file_buf, 1, PAYLOAD_SIZE, file);
+
+                if (bytes_read > 0) {
+                    Packet data_p;
+                    memset(&data_p, 0, sizeof(data_p));
+                    data_p.header.seq_num = htonl(next_seq);
+                    data_p.header.ack_num = htonl(server_seq_num_y + 1); // Not critical for data packet
+                    data_p.header.flags = htons(ACK);
+                    memcpy(data_p.data, file_buf, bytes_read);
+
+                    size_t packet_len = sizeof(data_p.header) + bytes_read;
+                    
+                    if (((double)rand() / RAND_MAX) >= loss_rate) {
+                        sendto(sockfd, &data_p, packet_len, 0, (const struct sockaddr*)&server_addr, server_len);
+                        printf("-> Sent DATA packet with SEQ=%u\n", next_seq);
+                    } else {
+                        printf("-> Dropped DATA packet with SEQ=%u (simulated loss)\n", next_seq);
+                    }
+
+                    int window_idx = (next_seq / PAYLOAD_SIZE) % WINDOW_SIZE;
+                    window_buffer[window_idx].packet = data_p;
+                    window_buffer[window_idx].packet_len = packet_len;
+                    gettimeofday(&window_buffer[window_idx].time_sent, NULL);
+                    window_buffer[window_idx].acked = false;
+
+                    next_seq += bytes_read;
+                } else {
+                    if (feof(file)) { file_done = true; } 
+                    else { perror("File read error"); break; }
+                }
+            }
+
+            // --- Waiting/Receiving phase: wait for ACKs or timeout ---
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(sockfd, &readfds);
+            struct timeval timeout = { .tv_sec = 0, .tv_usec = RTO_MS * 1000 };
+            int activity = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
+
+            if (activity > 0) { // ACK received
+                recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
+                if (ntohs(recv_packet.header.flags) & ACK) {
+                    uint32_t acked_seq = ntohl(recv_packet.header.ack_num);
+                    printf("<- Received cumulative ACK=%u\n", acked_seq);
+                    if (acked_seq > base_seq) {
+                        base_seq = acked_seq;
+                    }
+                    receiver_window = ntohs(recv_packet.header.window_size);
+                }
+            } else if (activity == 0) { // Timeout
+                if (base_seq < next_seq) {
+                    printf("!! TIMEOUT !! Retransmitting packet with SEQ=%u\n", base_seq);
+                    int window_idx = (base_seq / PAYLOAD_SIZE) % WINDOW_SIZE;
+                    sendto(sockfd, &window_buffer[window_idx].packet, window_buffer[window_idx].packet_len, 0, (const struct sockaddr*)&server_addr, server_len);
+                    gettimeofday(&window_buffer[window_idx].time_sent, NULL);
+                }
+            }
+        }
+        fclose(file);
+        printf("\n[STATUS] File transfer complete.\n");
     }
     
+    // --- Four-Way Handshake (Termination) ---
+    printf("\n---------------------------------------------\n");
+    printf("[TERMINATION] Starting Four-Way Handshake.\n");
+
+    uint32_t client_fin_seq = next_seq; 
+    memset(&send_packet, 0, sizeof(send_packet));
+    send_packet.header.seq_num = htonl(client_fin_seq);
+    send_packet.header.flags = htons(FIN);
+    sendto(sockfd, &send_packet, sizeof(send_packet.header), 0, (const struct sockaddr *)&server_addr, server_len);
+    printf("[TERMINATION] Step 1: Sent FIN.\n");
+
+    recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
+    printf("[TERMINATION] Step 2: Received ACK for our FIN.\n");
+
+    recvfrom(sockfd, &recv_packet, sizeof(recv_packet), 0, NULL, NULL);
+    printf("[TERMINATION] Step 3: Received FIN from server.\n");
+
+    uint32_t server_fin_seq = ntohl(recv_packet.header.seq_num);
+    send_packet.header.seq_num = htonl(client_fin_seq + 1);
+    send_packet.header.ack_num = htonl(server_fin_seq + 1);
+    send_packet.header.flags = htons(ACK);
+    sendto(sockfd, &send_packet, sizeof(send_packet.header), 0, (const struct sockaddr *)&server_addr, server_len);
+    printf("[TERMINATION] Step 4: Sent final ACK. Connection closing.\n");
+
     close(sockfd);
     return 0;
 }
