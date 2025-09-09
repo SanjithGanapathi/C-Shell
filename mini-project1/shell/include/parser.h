@@ -28,12 +28,31 @@ typedef struct {
     char *value;  // only used if type == TOK_NAME
 } Token;
 
+// HIGHLIGHT: Introduce explicit redirection list to preserve left-to-right semantics.
+typedef enum {
+    REDIR_IN,
+    REDIR_OUT_TRUNC,
+    REDIR_OUT_APPEND
+} RedirKind;
+
+typedef struct {
+    RedirKind kind;
+    char *path;
+} Redirection;
+
 // Represents an atomic command like `cat file.txt > out.txt`
 typedef struct AtomicCmd {
-    char **argv;         // arguments: ["cat","file.txt",NULL]
-    char *inputFile;    // "< file"
-    char *outputFile;   // "> file" or ">> file"
-    bool append;         // true if >>
+    char **argv;              // arguments: ["cat","file.txt",NULL]
+
+    // Legacy single-fields (kept for backward compatibility with existing builtin code)
+    char *inputFile;
+    char *outputFile;
+    bool append;
+
+    // HIGHLIGHT: New redirection array capturing all redirections in source order.
+    Redirection *redirs;
+    int redirCount;
+    int redirCap;
 } AtomicCmd;
 
 // Represents a command group: pipeline of atomics (cmd1 | cmd2 | cmd3)
@@ -63,6 +82,9 @@ void freeShellCmd(ShellCmd * cmd);
 ShellCmd * parseCommand(const char * input);
 CmdGroup * parseCmdGrp(Token *toks, int *i);
 AtomicCmd * parseAtomic(Token *toks, int *i);
+
+// HIGHLIGHT: helper to detect if an argument sequence corresponds to a builtin needing in-process execution.
+bool isBuiltinName(const char *name);
 
 #endif // PARSER_H
 

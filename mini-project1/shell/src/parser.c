@@ -95,8 +95,16 @@ void freeAtomicCmd(AtomicCmd *cmd) {
         }
         free(cmd->argv);
     }
+    // Free legacy single redirection targets
     free(cmd->inputFile);
     free(cmd->outputFile);
+    // HIGHLIGHT: Free extended redirection list
+    if(cmd->redirs) {
+        for(int i = 0; i < cmd->redirCount; i++) {
+            free(cmd->redirs[i].path);
+        }
+        free(cmd->redirs);
+    }
     free(cmd);
 }
 
@@ -120,61 +128,95 @@ void freeShellCmd(ShellCmd *shell_cmd) {
 
 AtomicCmd * parseAtomic(Token * toks, int * i) {
     if(toks[*i].type != TOK_NAME) {
-//        printf("INVALID SYNTAX!!\n");
         return NULL;
     }
 
     int maxArgcnt = INIT_ARG_SIZE;
     AtomicCmd * cmd = (AtomicCmd*)calloc(1, sizeof(AtomicCmd));
+    if(!cmd) return NULL;
     cmd->argv = malloc(maxArgcnt*sizeof(char*));
+    if(!cmd->argv) {
+        free(cmd);
+        return NULL;
+    }
+    cmd->redirCap = 4;
+    cmd->redirs = calloc(cmd->redirCap, sizeof(Redirection));
+    cmd->redirCount = 0;
+
     int argc = 0;
 
     while(toks[*i].type != TOK_PIPE &&
           toks[*i].type != TOK_AND &&
           toks[*i].type != TOK_SEMCOL &&
           toks[*i].type != TOK_END) {
+
         if(toks[*i].type == TOK_NAME) {
             if(argc == maxArgcnt-1) {
                 maxArgcnt *= 2;
-                cmd->argv = realloc(cmd->argv, sizeof(char*)*maxArgcnt);
-                if(cmd->argv == NULL) {
-                    printf("Realloc Error..\n");
-                    exit(EXIT_FAILURE);
+                char **tmp = realloc(cmd->argv, sizeof(char*)*maxArgcnt);
+                if(tmp == NULL) {
+                    fprintf(stderr, "Realloc Error..\n");
+                    freeAtomicCmd(cmd);
+                    return NULL;
                 }
+                cmd->argv = tmp;
             }
             cmd->argv[argc++] = strdup(toks[*i].value);
             (*i)++;
-        } else if(toks[*i].type == TOK_INPUT || toks[*i].type == TOK_OUTPUT || toks[*i].type == TOK_APPEND) {
+            continue;
+        }
+
+        if(toks[*i].type == TOK_INPUT || toks[*i].type == TOK_OUTPUT || toks[*i].type == TOK_APPEND) {
             TokenType type = toks[*i].type;
             (*i)++;
+
+            // Require a filename after redirection operator
             if(toks[*i].type != TOK_NAME) {
-  //              printf("Invalid Syntax");
                 freeAtomicCmd(cmd);
                 return NULL;
             }
-            if(type == TOK_INPUT) {
-                if(cmd->inputFile != NULL) {
-                    printf("Syntax Error: Ambiguous input redirect.\n");
+
+            // Expand redirection array if needed
+            if(cmd->redirCount == cmd->redirCap) {
+                cmd->redirCap *= 2;
+                Redirection *rtemp = realloc(cmd->redirs, sizeof(Redirection)*cmd->redirCap);
+                if(!rtemp) {
+                    fprintf(stderr, "Realloc Error..\n");
                     freeAtomicCmd(cmd);
                     return NULL;
                 }
+                cmd->redirs = rtemp;
+            }
+
+            // Map token -> RedirKind
+            RedirKind rk;
+            if(type == TOK_INPUT) rk = REDIR_IN;
+            else if(type == TOK_APPEND) rk = REDIR_OUT_APPEND;
+            else rk = REDIR_OUT_TRUNC;
+
+            cmd->redirs[cmd->redirCount].kind = rk;
+            cmd->redirs[cmd->redirCount].path = strdup(toks[*i].value);
+            cmd->redirCount++;
+
+            // Maintain legacy single-field view (store the last one of each type)
+            if(rk == REDIR_IN) {
+                if(cmd->inputFile) free(cmd->inputFile);
                 cmd->inputFile = strdup(toks[*i].value);
             } else {
-                if(cmd->outputFile != NULL) {
-                    printf("Syntax Error: Ambiguous output redirect.\n");
-                    freeAtomicCmd(cmd);
-                    return NULL;
-                }
+                if(cmd->outputFile) free(cmd->outputFile);
                 cmd->outputFile = strdup(toks[*i].value);
-                cmd->append = (type == TOK_APPEND);
+                cmd->append = (rk == REDIR_OUT_APPEND);
             }
+
             (*i)++;
-        } else {
-//            printf("Invalid Syntax\n");
-            freeAtomicCmd(cmd);
-            return NULL;
+            continue;
         }
+
+        // Any other token type here is a syntax error for an atomic command
+        freeAtomicCmd(cmd);
+        return NULL;
     }
+
     cmd->argv[argc] = NULL;
     return cmd;
 }

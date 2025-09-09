@@ -1,7 +1,6 @@
 #include "../include/prompt.h"
 #include "../include/utilities.h"
 
-
 void printShellPrompt(char * homeDirectory) {
     char *username = getenv("USER");
     if(!username) username = "user";
@@ -34,3 +33,4 @@ void printShellPrompt(char * homeDirectory) {
     free(commonDirectory);
     free(relDirectory);
 }
+

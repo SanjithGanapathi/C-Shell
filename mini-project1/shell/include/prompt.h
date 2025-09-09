@@ -3,6 +3,6 @@
 
 #include "shell.h"
 
+void initializeShell();
 void printShellPrompt(char * homeDirectory);
-
 #endif

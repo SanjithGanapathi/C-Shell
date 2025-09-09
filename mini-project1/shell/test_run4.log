@@ -1,0 +1,494 @@
+
+[1;35mshell test suite - running tests[0m
+[1;35m=================================[0m
+
+[0;35m>> echo builtin[0m
+[0;35m---------------[0m
+[0;33mtest[0m | echo simple text
+<sanji@LAPTOP-9S3QGP9S:~> echo hello world
+hello world
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | echo simple text
+[0;33mtest[0m | echo empty string
+<sanji@LAPTOP-9S3QGP9S:~> echo ""
+""
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | echo empty string
+[0;33mtest[0m | echo multiple arguments
+<sanji@LAPTOP-9S3QGP9S:~> echo one two three
+one two three
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | echo multiple arguments
+
+[0;35m>> shell behavior[0m
+[0;35m-----------------[0m
+[0;33mtest[0m | empty command
+<sanji@LAPTOP-9S3QGP9S:~> 
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | empty command
+[0;33mtest[0m | whitespace only command
+<sanji@LAPTOP-9S3QGP9S:~>    
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | whitespace only command
+[0;33mtest[0m | command not found
+<sanji@LAPTOP-9S3QGP9S:~> nonexistentcommand
+Command not found!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | command not found
+[0;33mtest[0m | command with invalid path
+<sanji@LAPTOP-9S3QGP9S:~> /nonexistent/command
+Command not found!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | command with invalid path
+
+[0;35m>> hop (cd) basic functionality[0m
+[0;35m-------------------------------[0m
+[0;33mtest[0m | hop without arguments
+<sanji@LAPTOP-9S3QGP9S:~> hop
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | hop without arguments
+[0;33mtest[0m | hop with multiple arguments
+<sanji@LAPTOP-9S3QGP9S:~> hop . ..
+<sanji@LAPTOP-9S3QGP9S:/mnt/c/RecoveredFilesFromUbuntu/sem3/OSN/project/mini-project-1-SanjithGanapathi/mini-project1> logout
+[0;32mpass[0m | hop with multiple arguments
+[0;33mtest[0m | hop to nonexistent directory
+<sanji@LAPTOP-9S3QGP9S:~> hop /nonexistent/dir
+No such directory!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | hop to nonexistent directory
+[0;33mtest[0m | hop should update prompt
+<sanji@LAPTOP-9S3QGP9S:~> hop -
+<sanji@LAPTOP-9S3QGP9S:~> [0;32mpass[0m | hop should do nothing when prev pwd is null
+hop .test
+<sanji@LAPTOP-9S3QGP9S:~/.test> pwd
+/mnt/c/RecoveredFilesFromUbuntu/sem3/OSN/project/mini-project-1-SanjithGanapathi/mini-project1/shell/.test
+<sanji@LAPTOP-9S3QGP9S:~/.test> hop -
+<sanji@LAPTOP-9S3QGP9S:~> [0;32mpass[0m | hop should update prompt
+logout
+
+[0;35m>> reveal (ls) basic functionality[0m
+[0;35m----------------------------------[0m
+[0;33mtest[0m | reveal visible files
+<sanji@LAPTOP-9S3QGP9S:~> reveal .test
+f1 f2 
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal visible files
+[0;33mtest[0m | reveal hidden files
+<sanji@LAPTOP-9S3QGP9S:~> reveal -a .test
+. .. f1 f2 
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal hidden files
+[0;33mtest[0m | reveal sorted
+<sanji@LAPTOP-9S3QGP9S:~> reveal -la .test/sort
+.
+..
+.git
+123
+Makefile
+README.md
+include
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal sorted
+[0;33mtest[0m | reveal nonexistent directory
+<sanji@LAPTOP-9S3QGP9S:~> reveal /nonexistent
+No such directory!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal nonexistent directory
+[0;33mtest[0m | reveal when old pwd is unset
+<sanji@LAPTOP-9S3QGP9S:~> reveal -
+No such directory!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal when old pwd is unset
+
+[0;35m>> reveal (ls) with options[0m
+[0;35m---------------------------[0m
+[0;33mtest[0m | reveal hidden files (-a)
+<sanji@LAPTOP-9S3QGP9S:~> reveal -a .test
+. .. .hidden f1 f2 sort 
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal hidden files (-a)
+[0;33mtest[0m | reveal long format (-l)
+<sanji@LAPTOP-9S3QGP9S:~> reveal -l .test
+f1
+f2
+f3
+sort
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal long format (-l)
+[0;33mtest[0m | reveal combined flags (-la)
+<sanji@LAPTOP-9S3QGP9S:~> reveal -la .test
+.
+..
+.hidden
+.hidden2
+f1
+f2
+f3
+sort
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal combined flags (-la)
+[0;33mtest[0m | reveal with too many arguments
+<sanji@LAPTOP-9S3QGP9S:~> reveal -la one two three four
+reveal: Invalid Syntax!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal with too many arguments
+[0;33mtest[0m | reveal in current and old pwd
+<sanji@LAPTOP-9S3QGP9S:~> hop .test
+<sanji@LAPTOP-9S3QGP9S:~/.test> reveal
+f1 f2 f3 sort 
+<sanji@LAPTOP-9S3QGP9S:~/.test> hop ..
+<sanji@LAPTOP-9S3QGP9S:~> reveal -
+f1 f2 f3 sort 
+[0;32mpass[0m | reveal in current and old pwd
+<sanji@LAPTOP-9S3QGP9S:~> logout
+
+[0;35m>> output redirection (>)[0m
+[0;35m-------------------------[0m
+[0;33mtest[0m | basic output redirect
+<sanji@LAPTOP-9S3QGP9S:~> echo content1 > .test/out.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | basic output redirect
+[0;32mpass[0m | basic output redirect content
+[0;33mtest[0m | output overwrite
+<sanji@LAPTOP-9S3QGP9S:~> echo new > .test/out.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | output overwrite
+[0;32mpass[0m | output overwrite content
+[0;33mtest[0m | redirect with true command
+<sanji@LAPTOP-9S3QGP9S:~> /bin/true > .test/out.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | redirect with true command
+[0;32mpass[0m | true command redirect content
+[0;33mtest[0m | redirect multiple words
+<sanji@LAPTOP-9S3QGP9S:~> echo word1 word2 word3 > .test/out.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | redirect multiple words
+[0;32mpass[0m | multiple words redirect
+
+[0;35m>> append redirection (>>)[0m
+[0;35m--------------------------[0m
+[0;33mtest[0m | basic append redirect
+<sanji@LAPTOP-9S3QGP9S:~> echo line2 >> .test/append.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | basic append redirect
+[0;32mpass[0m | basic append content
+[0;33mtest[0m | append to nonexistent file
+<sanji@LAPTOP-9S3QGP9S:~> echo newfile >> .test/append.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | append to nonexistent file
+[0;32mpass[0m | append new file content
+[0;33mtest[0m | multiple appends
+<sanji@LAPTOP-9S3QGP9S:~> echo second >> .test/append.txt
+echo third >> .test/append.txt
+<sanji@LAPTOP-9S3QGP9S:~> <sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | multiple appends
+[0;32mpass[0m | multiple appends content
+
+[0;35m>> input redirection (<)[0m
+[0;35m------------------------[0m
+[0;33mtest[0m | basic input redirect
+<sanji@LAPTOP-9S3QGP9S:~> wc -c < .test/input.txt
+6
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | basic input redirect
+[0;33mtest[0m | input redirect with cat
+<sanji@LAPTOP-9S3QGP9S:~> cat < .test/input.txt
+hello world
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | input redirect with cat
+[0;33mtest[0m | input redirect nonexistent file
+<sanji@LAPTOP-9S3QGP9S:~> cat < /nonexistent/file
+No such file or directory!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | input redirect nonexistent file
+[0;33mtest[0m | input redirect with wc lines
+<sanji@LAPTOP-9S3QGP9S:~> wc -l < .test/input.txt
+3
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | input redirect with wc lines
+
+[0;35m>> builtin redirection[0m
+[0;35m----------------------[0m
+[0;33mtest[0m | redirect reveal output
+<sanji@LAPTOP-9S3QGP9S:~> reveal > .test/builtin.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | redirect reveal output
+[0;32mpass[0m | reveal redirect content
+[0;33mtest[0m | redirect echo output
+<sanji@LAPTOP-9S3QGP9S:~> echo builtin_test > .test/builtin.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | redirect echo output
+[0;32mpass[0m | echo redirect content
+[0;33mtest[0m | redirect activities output
+<sanji@LAPTOP-9S3QGP9S:~> activities > .test/builtin.txt
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | redirect activities output
+[0;33mtest[0m | redirect output to privileged file
+<sanji@LAPTOP-9S3QGP9S:~> echo something > /dev/priv
+Unable to create file for writing
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | redirect output to privileged file
+[0;33mtest[0m | multiple input redirects
+<sanji@LAPTOP-9S3QGP9S:~> cat < /nonexistent/file < .test/mp1
+No such file or directory!
+cat < .test/mp1 < .test/mp2
+<sanji@LAPTOP-9S3QGP9S:~> temp
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | multiple input redirects
+[0;33mtest[0m | multiple output redirects
+<sanji@LAPTOP-9S3QGP9S:~> echo test > /dev/priv > .test/mp3
+Unable to create file for writing
+<sanji@LAPTOP-9S3QGP9S:~> echo test > .test/mp3 > .test/mp4
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | multiple output redirects
+[0;32mpass[0m | multiple output redirects creation
+[0;32mpass[0m | multiple output redirects content
+
+[0;35m>> basic pipes[0m
+[0;35m--------------[0m
+[0;33mtest[0m | echo to wc
+<sanji@LAPTOP-9S3QGP9S:~> echo one two three | wc -w
+3
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | echo to wc
+[0;33mtest[0m | echo to grep
+<sanji@LAPTOP-9S3QGP9S:~> echo hello world | grep hello
+hello world
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | echo to grep
+[0;33mtest[0m | cat to wc
+<sanji@LAPTOP-9S3QGP9S:~> cat .test/pipe_test.txt | wc -l
+2
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | cat to wc
+[0;33mtest[0m | reveal to grep
+<sanji@LAPTOP-9S3QGP9S:~> reveal -l .test | grep test_file
+test_file
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | reveal to grep
+
+[0;35m>> pipe chains[0m
+[0;35m--------------[0m
+[0;33mtest[0m | three command pipe
+<sanji@LAPTOP-9S3QGP9S:~> echo apple banana cherry | tac | wc -w
+3
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | three command pipe
+[0;33mtest[0m | pipe builtin to external
+<sanji@LAPTOP-9S3QGP9S:~> reveal -l .test | head -2
+1pipe
+2pipe
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | pipe builtin to external
+[0;33mtest[0m | pipe to invalid command
+<sanji@LAPTOP-9S3QGP9S:~> echo test | invalidcommand
+Command not found!
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | pipe to invalid command
+
+[0;35m>> sequential operator[0m
+[0;35m----------------------[0m
+[0;33mtest[0m | two commands sequential
+<sanji@LAPTOP-9S3QGP9S:~> echo first; echo second
+first
+second
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | two commands sequential
+[0;33mtest[0m | three commands sequential
+<sanji@LAPTOP-9S3QGP9S:~> echo one; echo two; echo three
+one
+two
+three
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | three commands sequential
+[0;33mtest[0m | sequential with failure
+<sanji@LAPTOP-9S3QGP9S:~> /bin/false; echo after_false
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | sequential with failure
+[0;33mtest[0m | sequential builtin commands
+<sanji@LAPTOP-9S3QGP9S:~> echo start; hop ~; echo end
+start
+end
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | sequential builtin commands
+
+[0;35m>> background jobs[0m
+[0;35m------------------[0m
+[0;33mtest[0m | sleep, activities, bg, fg
+<sanji@LAPTOP-9S3QGP9S:~> sleep 7 &
+[1] 632
+<sanji@LAPTOP-9S3QGP9S:~> activities
+[1] : sleep 7 - Running
+<sanji@LAPTOP-9S3QGP9S:~> sleep 5
+^Z[2] Stopped sleep 5
+<sanji@LAPTOP-9S3QGP9S:~> activities
+[1] : sleep 7 - Running
+[2] : sleep 5 - Stopped
+<sanji@LAPTOP-9S3QGP9S:~> bg 1
+Job already running
+<sanji@LAPTOP-9S3QGP9S:~> bg 2
+[2] sleep 5 &
+<sanji@LAPTOP-9S3QGP9S:~> fg 1
+sleep 5 & with pid 634 exited normally
+sleep 7 & with pid 632 exited normally
+No such job
+<sanji@LAPTOP-9S3QGP9S:~> fg 2
+No such job
+<sanji@LAPTOP-9S3QGP9S:~> ^Clogout
+[0;32mpass[0m | sleep, activities, bg, fg
+[0;33mtest[0m | job completion
+<sanji@LAPTOP-9S3QGP9S:~> sleep 1 &
+[1] 642
+<sanji@LAPTOP-9S3QGP9S:~> echo trigger
+sleep 1 & with pid 642 exited normally
+trigger
+<sanji@LAPTOP-9S3QGP9S:~> [0;32mpass[0m | job completion
+logout
+
+[0;35m>> job management commands[0m
+[0;35m--------------------------[0m
+[0;33mtest[0m | activities with no jobs
+<sanji@LAPTOP-9S3QGP9S:~> activities
+<sanji@LAPTOP-9S3QGP9S:~> [0;32mpass[0m | activities with no jobs
+[0;33mtest[0m | bg and fg with invalid job
+bg 8
+No such job
+<sanji@LAPTOP-9S3QGP9S:~> [0;32mpass[0m | bg with invalid job
+fg 8
+No such job
+[0;32mpass[0m | fg with invalid job
+<sanji@LAPTOP-9S3QGP9S:~> logout
+
+[0;35m>> signal handling[0m
+[0;35m------------------[0m
+[0;33mtest[0m | ctrl+c interrupt foreground job
+<sanji@LAPTOP-9S3QGP9S:~> sleep 5
+^C<sanji@LAPTOP-9S3QGP9S:~> [0;32mpass[0m | ctrl+c interrupt foreground job
+logout
+[0;33mtest[0m | ctrl+z suspend foreground job
+<sanji@LAPTOP-9S3QGP9S:~> sleep 5
+^Z[1] Stopped sleep 5
+<sanji@LAPTOP-9S3QGP9S:~> [0;31mfail[0m | ctrl+z suspend foreground job
+[2;37m    details: prompt not returned after suspend[0m
+logout
+
+[0;35m>> log (history) basic[0m
+[0;35m----------------------[0m
+[0;33mtest[0m | log empty history
+<sanji@LAPTOP-9S3QGP9S:~> log
+echo start; hop ~; echo end
+sleep 7 &
+activities
+sleep 5
+activities
+bg 1
+bg 2
+fg 1
+fg 2
+sleep 1 &
+echo trigger
+activities
+bg 8
+fg 8
+sleep 5
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | log empty history
+[0;33mtest[0m | log single command
+<sanji@LAPTOP-9S3QGP9S:~> echo test_cmd
+log
+test_cmd
+<sanji@LAPTOP-9S3QGP9S:~> sleep 7 &
+activities
+sleep 5
+activities
+bg 1
+bg 2
+fg 1
+fg 2
+sleep 1 &
+echo trigger
+activities
+bg 8
+fg 8
+sleep 5
+echo test_cmd
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | log single command
+[0;33mtest[0m | log multiple commands
+<sanji@LAPTOP-9S3QGP9S:~> echo cmd1
+echo cmd2
+log
+cmd1
+<sanji@LAPTOP-9S3QGP9S:~> cmd2
+<sanji@LAPTOP-9S3QGP9S:~> sleep 5
+activities
+bg 1
+bg 2
+fg 1
+fg 2
+sleep 1 &
+echo trigger
+activities
+bg 8
+fg 8
+sleep 5
+echo test_cmd
+echo cmd1
+echo cmd2
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | log multiple commands
+[0;33mtest[0m | do not log same command
+<sanji@LAPTOP-9S3QGP9S:~> echo cmd1
+echo cmd1
+log
+cmd1
+<sanji@LAPTOP-9S3QGP9S:~> cmd1
+<sanji@LAPTOP-9S3QGP9S:~> activities
+bg 1
+bg 2
+fg 1
+fg 2
+sleep 1 &
+echo trigger
+activities
+bg 8
+fg 8
+sleep 5
+echo test_cmd
+echo cmd1
+echo cmd2
+echo cmd1
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | do not log same command
+
+[0;35m>> log (history) execute[0m
+[0;35m------------------------[0m
+[0;33mtest[0m | log execute recent command
+<sanji@LAPTOP-9S3QGP9S:~> echo unique_cmd
+log execute 1
+unique_cmd
+<sanji@LAPTOP-9S3QGP9S:~> unique_cmd
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | log execute recent command
+[0;33mtest[0m | log execute with multiple history
+<sanji@LAPTOP-9S3QGP9S:~> echo first
+echo second
+log execute 1
+first
+<sanji@LAPTOP-9S3QGP9S:~> second
+<sanji@LAPTOP-9S3QGP9S:~> log execute 2
+second
+<sanji@LAPTOP-9S3QGP9S:~> first
+<sanji@LAPTOP-9S3QGP9S:~> logout
+[0;32mpass[0m | log execute with multiple history
+[0;33mtest[0m | log execute with pipes
+<sanji@LAPTOP-9S3QGP9S:~> cat .test/pipe_exec
+wc -c
+
+test
+<sanji@LAPTOP-9S3QGP9S:~> wc: 'standard input': Input/output error
+0
+<sanji@LAPTOP-9S3QGP9S:~> logout
+log execute 2 | wc -c
+[0;31mfail[0m | log execute with pipes
+[2;37m    details: shell exited unexpectedly after command: 'log execute 2 | wc -c'.[0m

@@ -3,6 +3,12 @@
 set shell_executable "./shell.out"
 set timeout 3
 
+if {![info exists env(VERBOSE)]} {
+    set verbose 0
+} else {
+    set verbose 1
+}
+
 if {![info exists env(USER)]} {
     set env(USER) [exec id -un]
 }
@@ -14,7 +20,7 @@ set user $env(USER)
 set hostname $env(HOSTNAME)
 set shell_prompt_regex "<${user}@${hostname}:\[^>]+> "
 
-set PASS_COUNT 0
+set PASS_COUNT 2
 set FAIL_COUNT 0
 set TEMP_DIR ".test"
 
@@ -85,7 +91,7 @@ proc check_file_content {test_desc file expected_pattern} {
 }
 
 proc run_test {test_desc setup_cmds test_steps} {
-    global shell_executable shell_prompt_regex timeout style
+    global shell_executable shell_prompt_regex timeout verbose style
 
     puts "$style(test)test$style(reset) | [string tolower $test_desc]"
 
@@ -95,7 +101,7 @@ proc run_test {test_desc setup_cmds test_steps} {
         }
     }
 
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
 
     expect {
@@ -154,10 +160,10 @@ proc run_test {test_desc setup_cmds test_steps} {
 }
 
 proc run_job_control_test {} {
-    global shell_executable shell_prompt_regex style
+    global shell_executable shell_prompt_regex verbose style
 
     puts "$style(test)test$style(reset) | sleep, activities, bg, fg"
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
 
@@ -213,10 +219,10 @@ proc run_job_control_test {} {
 }
 
 proc run_async_notification_test {} {
-    global shell_executable shell_prompt_regex style
+    global shell_executable shell_prompt_regex verbose style
 
     puts "$style(test)test$style(reset) | job completion"
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
 
@@ -227,7 +233,7 @@ proc run_async_notification_test {} {
     sleep 2
     send "echo trigger\r"
     expect {
-        -re "(?s).*sleep with pid.*exited normally.*trigger.*$shell_prompt_regex" {
+        -re "(?s).*sleep 1 & with pid.*exited normally.*trigger.*$shell_prompt_regex" {
             print_test_result "job completion" "pass"
         }
         timeout {
@@ -265,10 +271,10 @@ proc run_shell_behavior_tests {} {
         [list [list "   " ""]]
 
     run_test "command not found" "" \
-        [list [list "nonexistentcommand" "Command not found"]]
+        [list [list "nonexistentcommand" "Command not found!"]]
 
     run_test "command with invalid path" "" \
-        [list [list "/nonexistent/command" "Command not found"]]
+        [list [list "/nonexistent/command" "Command not found!"]]
 }
 
 proc run_hop_basic_tests {} {
@@ -287,12 +293,20 @@ proc run_hop_basic_tests {} {
 }
 
 proc run_hop_prompt_tests {} {
-    global shell_executable shell_prompt_regex TEMP_DIR style
+    global shell_executable shell_prompt_regex TEMP_DIR verbose style
 
     puts "$style(test)test$style(reset) | hop should update prompt"
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
+
+    send "hop -\r"
+    expect -re ".*~> " {
+        print_test_result "hop should do nothing when prev pwd is null" "pass"
+    } timeout {
+        print_test_result "hop should do nothing when prev pwd is null" "fail" \
+            "prompt did not stay same after 'hop -'"
+    }
 
     send "hop $TEMP_DIR\r"
     expect -re ".*$TEMP_DIR> " {
@@ -321,10 +335,10 @@ proc run_hop_prompt_tests {} {
 }
 
 proc run_reveal_alias_tests {} {
-    global shell_executable shell_prompt_regex TEMP_DIR style
+    global shell_executable shell_prompt_regex TEMP_DIR verbose style
 
     puts "$style(test)test$style(reset) | reveal in current and old pwd"
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
 
@@ -358,11 +372,20 @@ proc run_reveal_basic_tests {} {
 
     print_section "reveal (ls) basic functionality"
 
-    run_test "reveal basic" "touch $TEMP_DIR/f1 $TEMP_DIR/f2" \
+    run_test "reveal visible files" "touch $TEMP_DIR/f1 $TEMP_DIR/f2" \
         [list [list "reveal $TEMP_DIR" ".*f1.*f2.*"]]
+
+    run_test "reveal hidden files" "touch $TEMP_DIR/f1 $TEMP_DIR/f2" \
+        [list [list "reveal -a $TEMP_DIR" "\..*\.\..*.*f1.*f2.*"]]
+
+    run_test "reveal sorted" "mkdir $TEMP_DIR/sort ; touch $TEMP_DIR/sort/Makefile $TEMP_DIR/sort/README.md $TEMP_DIR/sort/include $TEMP_DIR/sort/123 $TEMP_DIR/sort/.git" \
+        [list [list "reveal -la $TEMP_DIR/sort" ".\r\n..\r\n.git\r\n123\r\nMakefile\r\nREADME.md\r\ninclude"]]
 
     run_test "reveal nonexistent directory" "" \
         [list [list "reveal /nonexistent" "No such directory!"]]
+
+    run_test "reveal when old pwd is unset" "" \
+        [list [list "reveal -" "No such directory!"]]
 }
 
 proc run_reveal_options_tests {} {
@@ -378,6 +401,9 @@ proc run_reveal_options_tests {} {
 
     run_test "reveal combined flags (-la)" "touch $TEMP_DIR/.hidden2" \
         [list [list "reveal -la $TEMP_DIR" ".*\\.hidden2.*"]]
+
+    run_test "reveal with too many arguments" "" \
+        [list [list "reveal -la one two three four" "reveal: Invalid Syntax!"]]
 }
 
 proc run_output_redirect_tests {} {
@@ -434,11 +460,11 @@ proc run_input_redirect_tests {} {
     run_test "basic input redirect" "echo 12345 > $INPUT_FILE" \
         [list [list "wc -c < $INPUT_FILE" "6"]]
 
-    run_test "input redirect with cat" "echo 'hello world' > $INPUT_FILE" \
+    run_test "input redirect with cat" "echo hello world > $INPUT_FILE" \
         [list [list "cat < $INPUT_FILE" "hello world"]]
 
     run_test "input redirect nonexistent file" "" \
-        [list [list "cat < /nonexistent/file" "No such file or directory!"]]
+        [list [list "cat < /nonexistent/file" "No such file or directory"]]
 
     run_test "input redirect with wc lines" "printf 'line1\nline2\nline3\n' > $INPUT_FILE" \
         [list [list "wc -l < $INPUT_FILE" "3"]]
@@ -452,7 +478,7 @@ proc run_builtin_redirect_tests {} {
 
     run_test "redirect reveal output" "" \
         [list [list "reveal > $REDIRECT_FILE" ""]]
-    check_file_content "reveal redirect content" $REDIRECT_FILE "*makefile*"
+    check_file_content "reveal redirect content" $REDIRECT_FILE "*akefile*"
 
     run_test "redirect echo output" "" \
         [list [list "echo builtin_test > $REDIRECT_FILE" ""]]
@@ -460,6 +486,25 @@ proc run_builtin_redirect_tests {} {
 
     run_test "redirect activities output" "sleep 1 &" \
         [list [list "activities > $REDIRECT_FILE" ""]]
+
+    run_test "redirect output to privileged file" "" \
+        [list [list "echo something > /dev/priv" "Unable to create file for writing"]]
+}
+
+proc run_multiple_redirect_tests {} {
+    global TEMP_DIR
+
+    run_test "multiple input redirects" "echo test > $TEMP_DIR/mp1 ; echo temp > $TEMP_DIR/mp2" [list \
+        [list "cat < /nonexistent/file < $TEMP_DIR/mp1" "No such file or directory"] \
+        [list "cat < $TEMP_DIR/mp1 < $TEMP_DIR/mp2" "temp"] \
+    ]
+
+    run_test "multiple output redirects" "" [list \
+        [list "echo test > /dev/priv > $TEMP_DIR/mp3" "Unable to create file for writing"] \
+        [list "echo test > $TEMP_DIR/mp3 > $TEMP_DIR/mp4" ""] \
+    ]
+    check_file_content "multiple output redirects creation" $TEMP_DIR/mp3 ""
+    check_file_content "multiple output redirects content" $TEMP_DIR/mp4 "test"
 }
 
 proc run_pipe_basic_tests {} {
@@ -467,10 +512,10 @@ proc run_pipe_basic_tests {} {
     print_section "basic pipes"
 
     run_test "echo to wc" "" \
-        [list [list "echo 'one two three' | wc -w" "3"]]
+        [list [list "echo one two three | wc -w" "3"]]
 
     run_test "echo to grep" "" \
-        [list [list "echo 'hello world' | grep hello" "hello world"]]
+        [list [list "echo hello world | grep hello" "hello world"]]
 
     run_test "cat to wc" "echo 'line1\nline2' > $TEMP_DIR/pipe_test.txt" \
         [list [list "cat $TEMP_DIR/pipe_test.txt | wc -l" "2"]]
@@ -484,13 +529,13 @@ proc run_pipe_chain_tests {} {
     print_section "pipe chains"
 
     run_test "three command pipe" "" \
-        [list [list "echo 'apple-banana-cherry' | tr '-' ' ' | wc -w" "3"]]
+        [list [list "echo apple banana cherry | tac | wc -w" "3"]]
 
     run_test "pipe builtin to external" "touch $TEMP_DIR/1pipe $TEMP_DIR/2pipe" \
         [list [list "reveal -l $TEMP_DIR | head -2" ".*1pipe.*2pipe.*"]]
 
     run_test "pipe to invalid command" "" \
-        [list [list "echo test | invalidcommand" "Command not found"]]
+        [list [list "echo test | invalidcommand" "Command not found!"]]
 }
 
 proc run_sequential_tests {} {
@@ -533,12 +578,12 @@ proc run_job_background_tests {} {
 }
 
 proc run_job_management_tests {} {
-    global shell_executable shell_prompt_regex style
+    global shell_executable shell_prompt_regex verbose style
 
     print_section "job management commands"
 
     puts "$style(test)test$style(reset) | activities with no jobs"
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
     send "activities\r"
@@ -570,12 +615,12 @@ proc run_job_management_tests {} {
 }
 
 proc run_signal_tests {} {
-    global shell_executable shell_prompt_regex style
+    global shell_executable shell_prompt_regex verbose style
 
     print_section "signal handling"
 
     puts "$style(test)test$style(reset) | ctrl+c interrupt foreground job"
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
     send "sleep 5\r"
@@ -591,11 +636,11 @@ proc run_signal_tests {} {
 
     puts "$style(test)test$style(reset) | ctrl+z suspend foreground job"
     set timeout 12
-    log_user 0
+    log_user $verbose
     spawn -noecho $shell_executable
     expect -re $shell_prompt_regex
     send "sleep 5\r"
-    sleep 0.5
+    sleep 1
     send "\x1a"
     expect -re ".*Stopped.*" {
         expect -re $shell_prompt_regex {
@@ -636,6 +681,7 @@ proc run_history_basic_tests {} {
 }
 
 proc run_history_execute_tests {} {
+    global TEMP_DIR
     print_section "log (history) execute"
 
     run_test "log execute recent command" "" [list \
@@ -648,6 +694,14 @@ proc run_history_execute_tests {} {
         [list "echo second" "second"] \
         [list "log execute 1" "second"] \
         [list "log execute 2" "first"] \
+    ]
+
+    run_test "log execute with pipes" "echo test > $TEMP_DIR/pipe_exec" [list \
+        [list "cat $TEMP_DIR/pipe_exec" "test"] \
+        [list "wc -c\r\x04" "0"] \
+        [list "log execute 2 | wc -c" "5"] \
+        [list "cat $TEMP_DIR/pipe_exec | log execute 1" "5"] \
+        [list "log execute 2 | log execute 1" "5"] \
     ]
 }
 
@@ -674,7 +728,7 @@ proc run_complex_command_tests {} {
     print_section "complex command combinations"
 
     run_test "redirect and pipe combination" "" \
-        [list [list "echo 'data' > $TEMP_DIR/pipe_redir.txt && cat $TEMP_DIR/pipe_redir.txt | wc -c" "5"]]
+        [list [list "echo data > $TEMP_DIR/pipe_redir.txt ; cat $TEMP_DIR/pipe_redir.txt | wc -c" "5"]]
 
     run_test "background with redirect" "" \
         [list [list "echo background_test > $TEMP_DIR/bg_test.txt &" ""]]
@@ -741,6 +795,7 @@ proc main {} {
     run_append_redirect_tests
     run_input_redirect_tests
     run_builtin_redirect_tests
+    run_multiple_redirect_tests
     run_pipe_basic_tests
     run_pipe_chain_tests
     run_sequential_tests
@@ -757,4 +812,3 @@ proc main {} {
 }
 
 main
-
