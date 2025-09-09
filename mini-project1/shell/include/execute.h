@@ -24,10 +24,12 @@ void checkBackgroundJobs();
 void addCmd(const char * command);
 void saveToLogFile();
 void loadHistory();
+bool executePing(AtomicCmd *cmd);
 
 /* HIGHLIGHT: job control helpers */
 Job * findJobByID(int jobID);
 Job * mostRecentJob();
 bool executeFg(AtomicCmd *cmd);
 bool executeBg(AtomicCmd *cmd);
+bool executePing(AtomicCmd *cmd);
 #endif

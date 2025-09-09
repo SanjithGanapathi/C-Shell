@@ -192,6 +192,9 @@ void runCommand(AtomicCmd *cmd) {
     } else if(!strcmp(cmd->argv[0], "activities")) {
         executeActivities(cmd);
         exit(0);
+    } else if(!strcmp(cmd->argv[0], "ping")) {
+        executePing(cmd);
+        exit(0);
     }
 
     execvp(cmd->argv[0], cmd->argv);
@@ -276,6 +279,8 @@ bool executeBuiltin(AtomicCmd *cmd) {
         executed = executeActivities(cmd);
     } else if(!strcmp("log", cmd->argv[0])) {
         executed = executeLog(cmd);
+    } else if(!strcmp("ping", cmd->argv[0])) {
+        executed = executePing(cmd);
     }
 
     fflush(stdout);
@@ -307,6 +312,8 @@ bool executeAtomicCmd(AtomicCmd *cmd) {
         return executeBuiltin(cmd);
     } else if(!strcmp("activities", cmd->argv[0])) {
         return executeBuiltin(cmd);
+    } else if(!strcmp("ping", cmd->argv[0])) {
+        return executeBuiltin(cmd);
     } else {
         pid_t f = fork();
         if(f < 0) {
@@ -321,12 +328,13 @@ bool executeAtomicCmd(AtomicCmd *cmd) {
         } else {
             int status;
             setpgid(f, f);
+            tcsetpgrp(STDIN_FILENO, f);
             foreground_pgid = f;
             while(1) {
                 pid_t w = waitpid(f, &status, WUNTRACED);
                 if(w == -1) {
                     if(errno == EINTR)
-                        continue; /* retry after signal (e.g., SIGTSTP delivery) */
+                        continue;
                     perror("waitpid");
                 }
                 break;
@@ -340,7 +348,6 @@ bool executeAtomicCmd(AtomicCmd *cmd) {
                         exit(EXIT_FAILURE);
                     }
                 }
-                /* Build full command string (all argv parts) for job name */
                 size_t totalLen = 0;
                 for(int ai = 0; cmd->argv[ai]; ai++)
                     totalLen += strlen(cmd->argv[ai]) + 1;
@@ -358,11 +365,13 @@ bool executeAtomicCmd(AtomicCmd *cmd) {
                 backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
                 backgroundJobs[jobCnt]->status = STOPPED;
                 printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
                 free(fullName);
                 jobCnt++;
                 nextJobID++;
             }
             foreground_pgid = 0;
+            tcsetpgrp(STDIN_FILENO, getpgrp());
             return (WIFEXITED(status) && WEXITSTATUS(status) == 0);
         }
     }
@@ -429,6 +438,7 @@ bool executeCmdGroup(CmdGroup *cmd) {
     }
 
     foreground_pgid = pgid;
+    tcsetpgrp(STDIN_FILENO, pgid);
     int status;
     int stopped = 0;
     int completed = 0;
@@ -487,6 +497,7 @@ bool executeCmdGroup(CmdGroup *cmd) {
         backgroundJobs[jobCnt] = initialiseJob(pgid, nextJobID, pipeName);
         backgroundJobs[jobCnt]->status = STOPPED;
         printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+        fflush(stdout);
         free(pipeName);
         jobCnt++;
         nextJobID++;
@@ -498,6 +509,7 @@ bool executeCmdGroup(CmdGroup *cmd) {
     }
 
     foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
     return true;
 }
 
@@ -859,91 +871,26 @@ bool executeLog(AtomicCmd *cmd) {
         ShellCmd *parsedCmd = parseCommand(commandInLog);
         if(parsedCmd) {
             bool in_child = (shell_pid != 0 && getpid() != shell_pid);
-
             if(in_child) {
-                /* DEBUG instrumentation for failing 'log execute N | wc -c' case.
-                   This will emit to stderr (test harness typically inspects stdout). */
-                int fast_possible = (parsedCmd->groupCount == 1 &&
-                                     parsedCmd->groups[0]->cmdCount == 1 &&
-                                     !parsedCmd->groups[0]->background);
-                /* log execute child (debug output removed) */
-
-                /* We are already inside the child created for the left side of a pipeline:
-                   Execute the recalled command directly WITHOUT re-logging or spawning a nested shell REPL.
-                   Strategy:
-                   - If exactly one foreground atomic command: exec it (fast-path).
-                   - Else (pipelines or multiple sequential groups): run them here (fallback). */
-
-                if(fast_possible) {
-                    AtomicCmd *ac = parsedCmd->groups[0]->commands[0];
-
-                    /* Apply simple legacy redirections (structured redirs already
-                       handled earlier if present). */
-                    if(ac->redirCount == 0) {
-                        if(ac->inputFile) {
-                            int fd = open(ac->inputFile, O_RDONLY);
-                            if(fd < 0) {
-                                perror(ac->inputFile);
-                                freeShellCmd(parsedCmd);
-                                _exit(1);
-                            }
-                            dup2(fd, STDIN_FILENO);
-                            close(fd);
-                        }
-                        if(ac->outputFile) {
-                            int fd;
-                            if(ac->append)
-                                fd = open(ac->outputFile, O_WRONLY | O_CREAT | O_APPEND, 0644);
-                            else
-                                fd = open(ac->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                            if(fd < 0) {
-                                perror(ac->outputFile);
-                                freeShellCmd(parsedCmd);
-                                _exit(1);
-                            }
-                            dup2(fd, STDOUT_FILENO);
-                            close(fd);
-                        }
+                /* Optimized child execution path:
+                   If the recalled command is a single foreground atomic command
+                   (no pipelines, no sequencing, not background),
+                   execute it directly via runCommand to preserve pipeline FDs.
+                   Otherwise fall back to /bin/sh -c. */
+                if(parsedCmd->groupCount == 1) {
+                    CmdGroup *g = parsedCmd->groups[0];
+                    if(!g->background && g->cmdCount == 1) {
+                        AtomicCmd *only = g->commands[0];
+                        runCommand(only); /* does not return on success */
+                        freeShellCmd(parsedCmd);
+                        _exit(127); /* runCommand failed/returned */
                     }
-
-                    /* Support selected builtins directly so pipelines like
-                       'log execute N | wc -c' work when the recalled command
-                       was originally a builtin. */
-                    if(!strcmp(ac->argv[0], "reveal")) {
-                        executeReveal(ac);
-                        freeShellCmd(parsedCmd);
-                        _exit(0);
-                    } else if(!strcmp(ac->argv[0], "activities")) {
-                        executeActivities(ac);
-                        freeShellCmd(parsedCmd);
-                        _exit(0);
-                    } else if(!strcmp(ac->argv[0], "log")) {
-                        /* Prevent infinite recursion for 'log execute' of a
-                           history entry that itself is a log execute. */
-                        if(ac->argv[1] && !strcmp(ac->argv[1], "execute")) {
-                            freeShellCmd(parsedCmd);
-                            _exit(0);
-                        }
-                        executeLog(ac);
-                        freeShellCmd(parsedCmd);
-                        _exit(0);
-                    }
-
-                    execvp(ac->argv[0], ac->argv);
-                    fprintf(stderr, "log: exec failed (%s)\n", ac->argv[0]);
-                    freeShellCmd(parsedCmd);
-                    _exit(127);
                 }
-
-                /* Fallback for complex recalled command: delegate to /bin/sh -c */
-                fprintf(stderr, "[DEBUG] log-exec fallback via /bin/sh -c '%s'\n", commandInLog);
-                fflush(stderr);
                 freeShellCmd(parsedCmd);
                 execl("/bin/sh", "sh", "-c", commandInLog, (char *)NULL);
-                fprintf(stderr, "log: exec failed (/bin/sh -c)\n");
+                fprintf(stderr, "log: exec failed\n");
                 _exit(127);
             } else {
-                /* Parent context: safe to reuse normal machinery */
                 executeCommand(parsedCmd, commandInLog);
                 freeShellCmd(parsedCmd);
             }
@@ -951,7 +898,41 @@ bool executeLog(AtomicCmd *cmd) {
     }
     return true;
 }
-
+ 
+/* ping builtin: Syntax: ping <pid> <signal_number>
+   Behavior:
+     - actual_signal = signal_number % 32
+     - On success: "Sent signal signal_number to process with pid <pid>"
+     - If pid invalid / process not found: "No such process found"
+     - On invalid syntax (missing args, extra args, non-numeric): "Invalid syntax!"
+*/
+bool executePing(AtomicCmd *cmd) {
+    if(!cmd->argv[1] || !cmd->argv[2] || cmd->argv[3]) {
+        printf("Invalid syntax!\n");
+        return false;
+    }
+    char *endp1 = NULL;
+    char *endp2 = NULL;
+    long pid_l = strtol(cmd->argv[1], &endp1, 10);
+    long sig_l = strtol(cmd->argv[2], &endp2, 10);
+    if(*endp1 != '\0' || *endp2 != '\0') {
+        printf("Invalid syntax!\n");
+        return false;
+    }
+    if(pid_l <= 0) {
+        printf("No such process found\n");
+        return false;
+    }
+    int original_sig = (int)sig_l;
+    int actual_sig = original_sig % 32;
+    if(kill((pid_t)pid_l, actual_sig) == -1) {
+        printf("No such process found\n");
+        return false;
+    }
+    printf("Sent signal %d to process with pid %ld\n", original_sig, pid_l);
+    return true;
+}
+ 
 /* HIGHLIGHT: fg implementation */
 bool executeFg(AtomicCmd *cmd) {
     Job *target = NULL;
@@ -987,6 +968,7 @@ bool executeFg(AtomicCmd *cmd) {
         }
     }
     foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
     return true;
 }
 

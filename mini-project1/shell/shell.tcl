@@ -703,6 +703,7 @@ proc run_history_execute_tests {} {
         [list "cat $TEMP_DIR/pipe_exec | log execute 1" "5"] \
         [list "log execute 2 | log execute 1" "5"] \
     ]
+
 }
 
 proc run_history_management_tests {} {
