@@ -1,0 +1,16 @@
+
+Link to Shell implementation questions and code generations 
+  https://g.co/gemini/share/fddc3880c5a6
+  https://chatgpt.com/share/68c412a9-08c8-8011-b672-df47e872b38a
+  https://chatgpt.com/share/68c412cd-c95c-8011-b773-409507798117
+  https://chatgpt.com/share/68c41311-8634-8011-b613-f98ce237dccd
+  https://chatgpt.com/share/68c41323-4528-8011-bf11-f367afeffc2c
+  https://chatgpt.com/share/68c4133d-74cc-8011-9721-e43b221b0563  
+
+Link to Networking implementation questions and code generations
+  https://g.co/gemini/share/ec188307775c
+
+Link to xv6 implementation questions and code generations
+  https://g.co/gemini/share/454676fb1e42 (Gemini)
+  https://chatgpt.com/share/68c411b6-60d4-8011-a4d8-5907f5b1c542 (ChatGPT)
+  https://g.co/gemini/share/fae428e56e38

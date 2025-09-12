@@ -1,0 +1,968 @@
+#Prompt
+<sanjith@LAPTOP-9S3QGP9S:~> cat .test/pipe_exec ENTER ; log ENTER ; log execute 2 | wc -c ENTER
+test
+cat: ENTER: No such file or directory
+
+printf "echo alpha\necho beta\nlog\nlog execute 1 | wc -c\nlogout\n" | ./shell.out 2>&1
+alpha
+beta
+echo cmd1
+echo cmd2
+echo cmd1
+echo unique_cmd
+echo first
+echo second
+cat .test/pipe_exec
+wc -c
+cat .test/pipe_exec
+logout
+echo alpha
+echo beta
+logout
+echo alpha
+echo beta
+5
+Command not found!
+
+printf "echo alpha\necho beta\nlog\nlog execute 2 | wc -c\nlogout\n" | ./shell.out 2>&1
+alpha
+beta
+fg 8
+sleep 5
+echo test_cmd
+echo cmd1
+echo cmd2
+echo cmd1
+echo unique_cmd
+echo first
+echo second
+cat .test/pipe_exec
+wc -c
+cat .test/pipe_exec
+logout
+echo alpha
+echo beta
+6
+Command not found!
+
+
+<<<<<<< SEARCH
+:start_line:185
+-------
+    /* Allow certain builtins inside pipelines (run in child). */
+    if(!strcmp(cmd->argv[0], "reveal")) {
+        executeReveal(cmd);
+        exit(0);
+    } else if(!strcmp(cmd->argv[0], "log")) {
+        executeLog(cmd);
+        exit(0);
+    } else if(!strcmp(cmd->argv[0], "activities")) {
+        executeActivities(cmd);
+        exit(0);
+    }
+=======
+    /* Allow certain builtins inside pipelines (run in child). */
+    if(!strcmp(cmd->argv[0], "reveal")) {
+        executeReveal(cmd);
+        exit(0);
+    } else if(!strcmp(cmd->argv[0], "log")) {
+        executeLog(cmd);
+        exit(0);
+    } else if(!strcmp(cmd->argv[0], "activities")) {
+        executeActivities(cmd);
+        exit(0);
+    } else if(!strcmp(cmd->argv[0], "ping")) {
+        executePing(cmd);
+        exit(0);
+    }
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:272
+-------
+    if(!strcmp("reveal", cmd->argv[0])) {
+        executed = executeReveal(cmd);
+    } else if(!strcmp("activities", cmd->argv[0])) {
+        executed = executeActivities(cmd);
+    } else if(!strcmp("log", cmd->argv[0])) {
+        executed = executeLog(cmd);
+    }
+=======
+    if(!strcmp("reveal", cmd->argv[0])) {
+        executed = executeReveal(cmd);
+    } else if(!strcmp("activities", cmd->argv[0])) {
+        executed = executeActivities(cmd);
+    } else if(!strcmp("log", cmd->argv[0])) {
+        executed = executeLog(cmd);
+    } else if(!strcmp("ping", cmd->argv[0])) {
+        executed = executePing(cmd);
+    }
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:296
+-------
+    if(!strcmp("fg", cmd->argv[0])) {
+        return executeFg(cmd);
+    } else if(!strcmp("bg", cmd->argv[0])) {
+        return executeBg(cmd);
+    } else if(!strcmp("hop", cmd->argv[0])) {
+        return executeHop(cmd);
+    } else if(!strcmp("reveal", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else if(!strcmp("log", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else if(!strcmp("activities", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else {
+=======
+    if(!strcmp("fg", cmd->argv[0])) {
+        return executeFg(cmd);
+    } else if(!strcmp("bg", cmd->argv[0])) {
+        return executeBg(cmd);
+    } else if(!strcmp("hop", cmd->argv[0])) {
+        return executeHop(cmd);
+    } else if(!strcmp("reveal", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else if(!strcmp("log", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else if(!strcmp("activities", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else if(!strcmp("ping", cmd->argv[0])) {
+        return executeBuiltin(cmd);
+    } else {
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:322
+-------
+            setpgid(f, f);
+            foreground_pgid = f;
+            while(1) {
+                pid_t w = waitpid(f, &status, WUNTRACED);
+                if(w == -1) {
+                    if(errno == EINTR)
+                        continue; /* retry after signal (e.g., SIGTSTP delivery) */
+                    perror("waitpid");
+                }
+                break;
+            }
+            if(WIFSTOPPED(status)) {
+                if(jobCnt >= jobCapacity) {
+                    jobCapacity *= 2;
+                    backgroundJobs = realloc(backgroundJobs, sizeof(Job *) * jobCapacity);
+                    if(!backgroundJobs) {
+                        perror("realloc");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                /* Build full command string (all argv parts) for job name */
+                size_t totalLen = 0;
+                for(int ai = 0; cmd->argv[ai]; ai++)
+                    totalLen += strlen(cmd->argv[ai]) + 1;
+                char *fullName = malloc(totalLen + 1);
+                if(!fullName) {
+                    perror("malloc");
+                    exit(EXIT_FAILURE);
+                }
+                fullName[0] = '\0';
+                for(int ai = 0; cmd->argv[ai]; ai++) {
+                    strcat(fullName, cmd->argv[ai]);
+                    if(cmd->argv[ai + 1])
+                        strcat(fullName, " ");
+                }
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+                jobCnt++;
+                nextJobID++;
+            }
+            foreground_pgid = 0;
+            return (WIFEXITED(status) && WEXITSTATUS(status) == 0);
+=======
+            setpgid(f, f);
+            tcsetpgrp(STDIN_FILENO, f);
+            foreground_pgid = f;
+            while(1) {
+                pid_t w = waitpid(f, &status, WUNTRACED);
+                if(w == -1) {
+                    if(errno == EINTR)
+                        continue;
+                    perror("waitpid");
+                }
+                break;
+            }
+            if(WIFSTOPPED(status)) {
+                if(jobCnt >= jobCapacity) {
+                    jobCapacity *= 2;
+                    backgroundJobs = realloc(backgroundJobs, sizeof(Job *) * jobCapacity);
+                    if(!backgroundJobs) {
+                        perror("realloc");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                size_t totalLen = 0;
+                for(int ai = 0; cmd->argv[ai]; ai++)
+                    totalLen += strlen(cmd->argv[ai]) + 1;
+                char *fullName = malloc(totalLen + 1);
+                if(!fullName) {
+                    perror("malloc");
+                    exit(EXIT_FAILURE);
+                }
+                fullName[0] = '\0';
+                for(int ai = 0; cmd->argv[ai]; ai++) {
+                    strcat(fullName, cmd->argv[ai]);
+                    if(cmd->argv[ai + 1])
+                        strcat(fullName, " ");
+                }
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+                jobCnt++;
+                nextJobID++;
+            }
+            foreground_pgid = 0;
+            tcsetpgrp(STDIN_FILENO, getpgrp());
+            return (WIFEXITED(status) && WEXITSTATUS(status) == 0);
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:432
+-------
+    foreground_pgid = pgid;
+    int status;
+=======
+    foreground_pgid = pgid;
+    tcsetpgrp(STDIN_FILENO, pgid);
+    int status;
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:500
+-------
+    foreground_pgid = 0;
+    return true;
+=======
+    foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+    return true;
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:955
+-------
+/* HIGHLIGHT: fg implementation */
+bool executeFg(AtomicCmd *cmd) {
+=======
+/* ping builtin: Syntax: ping <pid> <signal_number>
+   Prints:
+     Sent signal signal_number to process with pid <pid>
+   Errors:
+     Invalid syntax!            (non-numeric or missing args)
+     No such process found      (ESRCH)
+   Applies signal_number % 32 before sending. */
+bool executePing(AtomicCmd *cmd) {
+    if(!cmd->argv[1] || !cmd->argv[2] || cmd->argv[3]) {
+        printf("Invalid syntax!\n");
+        return false;
+    }
+    char *endp1 = NULL;
+    char *endp2 = NULL;
+    long pid_l = strtol(cmd->argv[1], &endp1, 10);
+    long sig_l = strtol(cmd->argv[2], &endp2, 10);
+    if(*endp1 != '\0' || *endp2 != '\0') {
+        printf("Invalid syntax!\n");
+        return false;
+    }
+    if(pid_l <= 0) {
+        printf("No such process found\n");
+        return false;
+    }
+    int original_sig = (int)sig_l;
+    int actual_sig = original_sig % 32;
+    if(kill((pid_t)pid_l, actual_sig) == -1) {
+        if(errno == ESRCH) {
+            printf("No such process found\n");
+        } else {
+            printf("No such process found\n");
+        }
+        return false;
+    }
+    printf("Sent signal %d to process with pid %ld\n", original_sig, pid_l);
+    return true;
+}
+
+/* HIGHLIGHT: fg implementation */
+bool executeFg(AtomicCmd *cmd) {
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:888
+-------
+    return true;
+}
+
+/* HIGHLIGHT: fg implementation */
+bool executeFg(AtomicCmd *cmd) {
+=======
+    return true;
+}
+
+/* ping builtin: Syntax: ping <pid> <signal_number>
+   Behavior:
+     - actual_signal = signal_number % 32
+     - On success: "Sent signal signal_number to process with pid <pid>"
+     - If pid invalid / process not found: "No such process found"
+     - On invalid syntax (missing args, extra args, non-numeric): "Invalid syntax!"
+*/
+bool executePing(AtomicCmd *cmd) {
+    if(!cmd->argv[1] || !cmd->argv[2] || cmd->argv[3]) {
+        printf("Invalid syntax!\n");
+        return false;
+    }
+    char *endp1 = NULL;
+    char *endp2 = NULL;
+    long pid_l = strtol(cmd->argv[1], &endp1, 10);
+    long sig_l = strtol(cmd->argv[2], &endp2, 10);
+    if(*endp1 != '\0' || *endp2 != '\0') {
+        printf("Invalid syntax!\n");
+        return false;
+    }
+    if(pid_l <= 0) {
+        printf("No such process found\n");
+        return false;
+    }
+    int original_sig = (int)sig_l;
+    int actual_sig = original_sig % 32;
+    if(kill((pid_t)pid_l, actual_sig) == -1) {
+        printf("No such process found\n");
+        return false;
+    }
+    printf("Sent signal %d to process with pid %ld\n", original_sig, pid_l);
+    return true;
+}
+
+/* HIGHLIGHT: fg implementation */
+bool executeFg(AtomicCmd *cmd) {
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:923
+-------
+    }
+    foreground_pgid = 0;
+    return true;
+=======
+    }
+    foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+    return true;
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:16
+-------
+bool executeCommand(ShellCmd * cmd, char * command);
+bool executeHop(AtomicCmd * cmd);
+bool executeReveal(AtomicCmd * cmd);
+bool executeLog(AtomicCmd * cmd);
+bool executeActivities(AtomicCmd * cmd);
+bool executeArbitaryCommands(AtomicCmd * cmd);
+void runCommand(AtomicCmd * cmd);
+void checkBackgroundJobs();
+void addCmd(const char * command);
+void saveToLogFile();
+void loadHistory();
+=======
+bool executeCommand(ShellCmd * cmd, char * command);
+bool executeHop(AtomicCmd * cmd);
+bool executeReveal(AtomicCmd * cmd);
+bool executeLog(AtomicCmd * cmd);
+bool executeActivities(AtomicCmd * cmd);
+bool executeArbitaryCommands(AtomicCmd * cmd);
+void runCommand(AtomicCmd * cmd);
+void checkBackgroundJobs();
+void addCmd(const char * command);
+void saveToLogFile();
+void loadHistory();
+bool executePing(AtomicCmd *cmd);
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:28
+-------
+Job * findJobByID(int jobID);
+Job * mostRecentJob();
+bool executeFg(AtomicCmd *cmd);
+bool executeBg(AtomicCmd *cmd);
+=======
+Job * findJobByID(int jobID);
+Job * mostRecentJob();
+bool executeFg(AtomicCmd *cmd);
+bool executeBg(AtomicCmd *cmd);
+bool executePing(AtomicCmd *cmd);
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:99
+-------
+            if(WIFSTOPPED(status)) {
+                if(backgroundJobs[i]->status != STOPPED) {
+                    backgroundJobs[i]->status = STOPPED;
+                    fprintf(stdout, "[%d] Stopped %s\n", backgroundJobs[i]->jobID, backgroundJobs[i]->cmdName);
+                    fflush(stdout);
+                } /* else already reported STOPPED */
+=======
+            if(WIFSTOPPED(status)) {
+                if(backgroundJobs[i]->status != STOPPED) {
+                    backgroundJobs[i]->status = STOPPED;
+                    fprintf(stdout, "\n[%d] Stopped %s\n", backgroundJobs[i]->jobID, backgroundJobs[i]->cmdName);
+                    fflush(stdout);
+                } /* else already reported STOPPED */
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:365
+-------
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+=======
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("\n[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:497
+-------
+        backgroundJobs[jobCnt] = initialiseJob(pgid, nextJobID, pipeName);
+        backgroundJobs[jobCnt]->status = STOPPED;
+        printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+        fflush(stdout);
+        free(pipeName);
+=======
+        backgroundJobs[jobCnt] = initialiseJob(pgid, nextJobID, pipeName);
+        backgroundJobs[jobCnt]->status = STOPPED;
+        printf("\n[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+        fflush(stdout);
+        free(pipeName);
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:870
+-------
+        ShellCmd *parsedCmd = parseCommand(commandInLog);
+        if(parsedCmd) {
+            bool in_child = (shell_pid != 0 && getpid() != shell_pid);
+            if(in_child) {
+                /* Simplified child execution path: always delegate to /bin/sh -c
+                   to avoid partial reimplementation issues inside pipelines. */
+                freeShellCmd(parsedCmd);
+                execl("/bin/sh", "sh", "-c", commandInLog, (char *)NULL);
+                fprintf(stderr, "log: exec failed\n");
+                _exit(127);
+            } else {
+                executeCommand(parsedCmd, commandInLog);
+                freeShellCmd(parsedCmd);
+            }
+        }
+=======
+        ShellCmd *parsedCmd = parseCommand(commandInLog);
+        if(parsedCmd) {
+            bool in_child = (shell_pid != 0 && getpid() != shell_pid);
+            if(in_child) {
+                /* Optimized child execution path:
+                   If the recalled command is a single foreground atomic command
+                   (no pipelines, no sequencing, not background),
+                   execute it directly via runCommand to preserve pipeline FDs.
+                   Otherwise fall back to /bin/sh -c. */
+                if(parsedCmd->groupCount == 1) {
+                    CmdGroup *g = parsedCmd->groups[0];
+                    if(!g->background && g->cmdCount == 1) {
+                        AtomicCmd *only = g->commands[0];
+                        runCommand(only); /* does not return on success */
+                        freeShellCmd(parsedCmd);
+                        _exit(127); /* runCommand failed/returned */
+                    }
+                }
+                freeShellCmd(parsedCmd);
+                execl("/bin/sh", "sh", "-c", commandInLog, (char *)NULL);
+                fprintf(stderr, "log: exec failed\n");
+                _exit(127);
+            } else {
+                executeCommand(parsedCmd, commandInLog);
+                freeShellCmd(parsedCmd);
+            }
+        }
+>>>>>>> REPLACE
+
+
+<<<<<<< SEARCH
+:start_line:99
+-------
+            if(WIFSTOPPED(status)) {
+                if(backgroundJobs[i]->status != STOPPED) {
+                    backgroundJobs[i]->status = STOPPED;
+                    fprintf(stdout, "\n[%d] Stopped %s\n", backgroundJobs[i]->jobID, backgroundJobs[i]->cmdName);
+                    fflush(stdout);
+                } /* else already reported STOPPED */
+=======
+            if(WIFSTOPPED(status)) {
+                if(backgroundJobs[i]->status != STOPPED) {
+                    backgroundJobs[i]->status = STOPPED;
+                    fprintf(stdout, "[%d] Stopped %s\n", backgroundJobs[i]->jobID, backgroundJobs[i]->cmdName);
+                    fflush(stdout);
+                } /* else already reported STOPPED */
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:365
+-------
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("\n[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+=======
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:497
+-------
+        backgroundJobs[jobCnt] = initialiseJob(pgid, nextJobID, pipeName);
+        backgroundJobs[jobCnt]->status = STOPPED;
+        printf("\n[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+        fflush(stdout);
+        free(pipeName);
+=======
+        backgroundJobs[jobCnt] = initialiseJob(pgid, nextJobID, pipeName);
+        backgroundJobs[jobCnt]->status = STOPPED;
+        printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+        fflush(stdout);
+        free(pipeName);
+>>>>>>> REPLACE
+
+
+<<<<<<< SEARCH
+:start_line:36
+-------
+// This function will be called when the user presses Ctrl-Z.
+void sigtstp_handler(int signum) {
+    // Check if there is a foreground process running.
+    if(foreground_pgid > 0) {
+        // Send the SIGTSTP signal to stop the entire foreground process group.
+        kill(-foreground_pgid, SIGTSTP);
+    }
+}
+=======
+ // Ctrl-Z handling removed
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:93
+-------
+// this function is to check the status of background tasks without stopping them
+void checkBackgroundJobs() {
+    for(int i = jobCnt - 1; i >= 0; i--) {
+        int status;
+        pid_t exitPID = waitpid(backgroundJobs[i]->pid, &status, WNOHANG | WUNTRACED);
+        if(exitPID > 0) {
+            if(WIFSTOPPED(status)) {
+                if(backgroundJobs[i]->status != STOPPED) {
+                    backgroundJobs[i]->status = STOPPED;
+                    fprintf(stdout, "[%d] Stopped %s\n", backgroundJobs[i]->jobID, backgroundJobs[i]->cmdName);
+                    fflush(stdout);
+                } /* else already reported STOPPED */
+            } else if(WIFEXITED(status) || WIFSIGNALED(status)) {
+                if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                    fprintf(stderr, "%s & with pid %d exited normally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+                } else {
+                    fprintf(stderr, "%s & with pid %d exited abnormally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+                }
+                removeJob(i);
+            }
+        }
+    }
+}
+=======
+ // this function is to check the status of background tasks without stopping them
+void checkBackgroundJobs() {
+    for(int i = jobCnt - 1; i >= 0; i--) {
+        int status;
+        pid_t exitPID = waitpid(backgroundJobs[i]->pid, &status, WNOHANG);
+        if(exitPID > 0) {
+            if(WIFEXITED(status) || WIFSIGNALED(status)) {
+                if(WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                    fprintf(stderr, "%s & with pid %d exited normally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+                } else {
+                    fprintf(stderr, "%s & with pid %d exited abnormally\n", backgroundJobs[i]->cmdName, backgroundJobs[i]->pid);
+                }
+                removeJob(i);
+            }
+        }
+    }
+}
+// (removed Ctrl-Z STOPPED handling)
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+// (removed)
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:318
+-------
+        pid_t f = fork();
+        if(f < 0) {
+            perror("fork");
+            exit(1);
+        } else if(f == 0) {
+            setpgid(0, 0);
+            /* Restore default handlers in child so it stops/interrupts correctly */
+            signal(SIGINT, SIG_DFL);
+            signal(SIGTSTP, SIG_DFL);
+            runCommand(cmd);
+        } else {
+            int status;
+            setpgid(f, f);
+            tcsetpgrp(STDIN_FILENO, f);
+            foreground_pgid = f;
+            while(1) {
+                pid_t w = waitpid(f, &status, WUNTRACED);
+                if(w == -1) {
+                    if(errno == EINTR)
+                        continue;
+                    perror("waitpid");
+                }
+                break;
+            }
+            if(WIFSTOPPED(status)) {
+                if(jobCnt >= jobCapacity) {
+                    jobCapacity *= 2;
+                    backgroundJobs = realloc(backgroundJobs, sizeof(Job *) * jobCapacity);
+                    if(!backgroundJobs) {
+                        perror("realloc");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                size_t totalLen = 0;
+                for(int ai = 0; cmd->argv[ai]; ai++)
+                    totalLen += strlen(cmd->argv[ai]) + 1;
+                char *fullName = malloc(totalLen + 1);
+                if(!fullName) {
+                    perror("malloc");
+                    exit(EXIT_FAILURE);
+                }
+                fullName[0] = '\0';
+                for(int ai = 0; cmd->argv[ai]; ai++) {
+                    strcat(fullName, cmd->argv[ai]);
+                    if(cmd->argv[ai + 1])
+                        strcat(fullName, " ");
+                }
+                backgroundJobs[jobCnt] = initialiseJob(f, nextJobID, fullName);
+                backgroundJobs[jobCnt]->status = STOPPED;
+                printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+                fflush(stdout);
+                free(fullName);
+                jobCnt++;
+                nextJobID++;
+            }
+            foreground_pgid = 0;
+            tcsetpgrp(STDIN_FILENO, getpgrp());
+            return (WIFEXITED(status) && WEXITSTATUS(status) == 0);
+        }
+=======
+        pid_t f = fork();
+        if(f < 0) {
+            perror("fork");
+            exit(1);
+        } else if(f == 0) {
+            setpgid(0, 0);
+            /* Restore default handlers in child */
+            signal(SIGINT, SIG_DFL);
+            /* Ctrl-Z removed: SIGTSTP handler no longer relevant */
+            signal(SIGTSTP, SIG_DFL);
+            runCommand(cmd);
+        } else {
+            int status;
+            setpgid(f, f);
+            tcsetpgrp(STDIN_FILENO, f);
+            foreground_pgid = f;
+            while(1) {
+                pid_t w = waitpid(f, &status, 0);
+                if(w == -1) {
+                    if(errno == EINTR)
+                        continue;
+                    perror("waitpid");
+                }
+                break;
+            }
+            /* Ctrl-Z STOPPED handling removed */
+            foreground_pgid = 0;
+            tcsetpgrp(STDIN_FILENO, getpgrp());
+            return (WIFEXITED(status) && WEXITSTATUS(status) == 0);
+        }
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+        // (removed)
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:440
+-------
+    foreground_pgid = pgid;
+    tcsetpgrp(STDIN_FILENO, pgid);
+    int status;
+    int stopped = 0;
+    int completed = 0;
+
+    /* Wait on the whole process group so any member receiving SIGTSTP is detected.
+       We count normal exits; break immediately on first stop. */
+    while(!stopped && completed < cmd->cmdCount) {
+        pid_t w = waitpid(-pgid, &status, WUNTRACED);
+        if(w < 0) {
+            if(errno == EINTR)
+                continue;
+            perror("waitpid");
+            break;
+        }
+        if(WIFSTOPPED(status)) {
+            stopped = 1;
+        } else if(WIFEXITED(status) || WIFSIGNALED(status)) {
+            completed++;
+        }
+    }
+
+    if(stopped) {
+        if(jobCnt >= jobCapacity) {
+            jobCapacity *= 2;
+            backgroundJobs = realloc(backgroundJobs, sizeof(Job *) * jobCapacity);
+            if(!backgroundJobs) {
+                perror("realloc");
+                exit(EXIT_FAILURE);
+            }
+        }
+        /* Build full pipeline string: each command's argv joined by spaces, commands separated by ' | ' */
+        size_t totalLen = 0;
+        for(int ci = 0; ci < cmd->cmdCount; ci++) {
+            AtomicCmd *ac = cmd->commands[ci];
+            for(int ai = 0; ac->argv[ai]; ai++)
+                totalLen += strlen(ac->argv[ai]) + 1;
+            if(ci < cmd->cmdCount - 1)
+                totalLen += 3;
+        }
+        char *pipeName = malloc(totalLen + 1);
+        if(!pipeName) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        pipeName[0] = '\0';
+        for(int ci = 0; ci < cmd->cmdCount; ci++) {
+            AtomicCmd *ac = cmd->commands[ci];
+            for(int ai = 0; ac->argv[ai]; ai++) {
+                strcat(pipeName, ac->argv[ai]);
+                if(ac->argv[ai + 1])
+                    strcat(pipeName, " ");
+            }
+            if(ci < cmd->cmdCount - 1)
+                strcat(pipeName, " | ");
+        }
+        backgroundJobs[jobCnt] = initialiseJob(pgid, nextJobID, pipeName);
+        backgroundJobs[jobCnt]->status = STOPPED;
+        printf("[%d] Stopped %s\n", nextJobID, backgroundJobs[jobCnt]->cmdName);
+        fflush(stdout);
+        free(pipeName);
+        jobCnt++;
+        nextJobID++;
+    } else {
+        /* Reap any remaining children (should be none) without blocking. */
+        int s2;
+        while(waitpid(-pgid, &s2, WNOHANG) > 0) {
+        }
+    }
+
+    foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+    return true;
+=======
+    foreground_pgid = pgid;
+    tcsetpgrp(STDIN_FILENO, pgid);
+    int status;
+    int completed = 0;
+    while(completed < cmd->cmdCount) {
+        pid_t w = waitpid(-pgid, &status, 0);
+        if(w < 0) {
+            if(errno == EINTR) continue;
+            perror("waitpid");
+            break;
+        }
+        if(WIFEXITED(status) || WIFSIGNALED(status)) {
+            completed++;
+        }
+    }
+    int s2;
+    while(waitpid(-pgid, &s2, WNOHANG) > 0) {}
+    foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+    return true;
+    // (removed Ctrl-Z stop tracking)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+:start_line:949
+-------
+    foreground_pgid = target->pid;
+    if(target->status == STOPPED) {
+        kill(-target->pid, SIGCONT);
+    }
+    /* Print full command */
+    printf("%s\n", target->cmdName);
+    int status;
+    if(waitpid(target->pid, &status, WUNTRACED) < 0) {
+        perror("waitpid");
+    }
+    if(WIFSTOPPED(status)) {
+        target->status = STOPPED;
+        printf("[%d] Stopped %s\n", target->jobID, target->cmdName);
+    } else {
+        for(int i = 0; i < jobCnt; i++) {
+            if(backgroundJobs[i] == target) {
+                removeJob(i);
+                break;
+            }
+        }
+    }
+    foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+    return true;
+=======
+    foreground_pgid = target->pid;
+    if(target->status == STOPPED) {
+        kill(-target->pid, SIGCONT);
+    }
+    printf("%s\n", target->cmdName);
+    int status;
+    if(waitpid(target->pid, &status, 0) < 0) {
+        perror("waitpid");
+    }
+    for(int i = 0; i < jobCnt; i++) {
+        if(backgroundJobs[i] == target) {
+            removeJob(i);
+            break;
+        }
+    }
+    foreground_pgid = 0;
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+    return true;
+    // (removed Ctrl-Z fg STOPPED logic)
+    // (removed)
+    // (removed)
+    // (removed)
+    // (removed)
+>>>>>>> REPLACE

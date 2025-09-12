@@ -1,0 +1,494 @@
+#Prompt
+Part A - Basic System Call: getreadcount
+Implement a system call that tracks and returns the total number of bytes read by the read() system call across all processes since boot.
+
+Requirements
+A.1: System Call Implementation
+Implement sys_getreadcount() that returns the current number of bytes read by the read() syscall.
+Handle overflow by wrapping around to 0.
+A.2: User Program
+Create a user program readcount.c that:
+
+Calls getreadcount() and prints the initial value
+Reads 100 bytes from a file
+Calls getreadcount() again and verifies the increasePart B - Completely Fair Scheduler
+You need to implement a simplified version of the Completely Fair Scheduler (CFS) in xv6. The CFS is designed to provide fair CPU time distribution among processes.
+
+Background
+The default scheduling policy in xv6 is round-robin-based. In this task, you’ll implement two other scheduling policies and incorporate them in xv6. The kernel should only use one scheduling policy declared at compile time, with a default of round robin in case none are specified.
+
+Modify the makefile to support the SCHEDULER macro to compile the specified scheduling algorithm. Use the flags for compilation:- First Come First Serve: FCFS COmpletely Fair Scheduler: CFS
+
+First Come First Serve [Marks 20]
+we will modify the xv6 scheduler from strict round-robin to a firstcome-first-server (FCFS) scheduler. This will involve using the creation time entrying in the process control block that was added in part A. We will modify the scheduler function (kernel/proc.c). Scheduler will first have to find a RUNNABLE process with the earliest creation time. The process with the earliest arrival time is the process with the highest priority and therefor the process that is selected for execution. Only when the currently RUNNING process terminates is another process selected to RUN. It is suggested that you comment out the original round-robin scheduler code before adding your new version of the scheduler.
+
+Your compilation process should look something like this: make clean; make qemu SCHEDULER=FCFS. Hints:
+
+Use pre-processor directives to declare the alternate scheduling policy in scheduler() in kernel/proc.h. Edit struct proc in kernel/proc.h to add information about a process. Modify the allocproc() function to set up values when the process starts (see kernel/proc.h.)
+
+NOTE procdump: This will be useful for debugging ( refer kernel/proc.c ). It prints a list of processes to the console when a user types Ctrl-P on the console. You can modify this functionality to print the state of the running process and display the other relevant information on the console.
+
+Use the procdump function to print the current status of the processes and check whether the processes are scheduled according to your logic. You are free to do any additions to the given file, to test your scheduler.
+
+You need to implement a simplified version of the Completely Fair Scheduler (CFS) in xv6. The CFS is designed to provide fair CPU time distribution among processes.
+
+Background
+The default xv6 scheduler uses a simple round-robin algorithm. Your task is to replace it with a simplified CFS that maintains fairness by tracking how much CPU time each process has received.
+
+Your compilation process should look something like this: make clean; make qemu SCHEDULER=CFS.
+
+Requirements
+B.1: Priority Support [Marks 10]
+Add a nice value for each process.
+Calculate the system weight based on nice value:
+Nice 0: weight = 1024
+Nice -20: weight = 88761 (highest priority)
+Nice 19: weight = 15 (lowest priority)
+Use this approximation: weight = 1024 / (1.25 ^ nice)
+B.2: Virtual Runtime Tracking [Marks 20]
+Track the virtual runtime of each process. A processes virtual runtime represents the amount of CPU time a process has consumed, normalized by the system weight.
+Initialize vruntime to 0 when a process is created.
+Update vruntime by the number of ticks the process runs during each time slice.
+B.2: Scheduling [Marks 50]
+Maintain processes in order of their vruntime (ascending order).
+Always schedule the runnable process with the smallest vruntime.
+When a process becomes runnable, insert it in the correct position based on vruntime.
+B.3: Time Slice Calculation [Marks 20]
+Define a target latency of 48 ticks.
+Calculate a time slice as: time_slice = target_latency / number_of_runnable_processes
+Enforce a minimum time slice of 3 ticks.
+Each process runs for its calculated time slice before being preempted.
+Report [Marks 20]
+In your implementation, add logging to print the vRuntime of all runnable processes before every scheduling decision. The log should clearly indicate:
+
+Process ID (PID) of each runnable process.
+
+vRuntime value for each process at that moment.
+
+Which process is selected by the scheduler (should be the one with the lowest vRuntime).
+
+Your log output should allow us to verify that:
+
+The process with the smallest vRuntime is being chosen by the scheduler.
+
+vRuntime values are updating correctly after each time slice.
+
+[Scheduler Tick]
+PID: 3 | vRuntime: 200
+PID: 4 | vRuntime: 150
+PID: 5 | vRuntime: 180
+--> Scheduling PID 4 (lowest vRuntime)
+The report also must contain brief explanation about the implementation of the specifications. A few lines about your changes for each spec is fine. Include the performance comparison between the default(Round Robin), FCFS and CFS scheduling policies by showing the average waiting and running times for processes. Set the processes to run on only 1 CPU for this purpose. Use the schedulertest command to get this information.  explore the directory of xv6 and provide and end to end solution without using jargon. Make it simple and understandable code and highlight the changes you have made. always follow the instructions given  ├── xv6/
+│   ├── xv6_modifications.patch
+│   ├── readcount.c
+│   └── report.md first take a snapshot of the already existing code and then start
+
+
+
+<<<<<<< SEARCH
+:start_line:16
+-------
+struct devsw devsw[NDEV];
+struct {
+  struct spinlock lock;
+  struct file file[NFILE];
+} ftable;
+=======
+struct devsw devsw[NDEV];
+uint64 read_count;
+struct spinlock readcount_lock;
+struct {
+  struct spinlock lock;
+  struct file file[NFILE];
+} ftable;
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:22
+-------
+void
+fileinit(void)
+{
+  initlock(&ftable.lock, "ftable");
+}
+=======
+void
+fileinit(void)
+{
+  initlock(&ftable.lock, "ftable");
+  initlock(&readcount_lock, "readcount");
+  read_count = 0;
+}
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:104
+-------
+ // Read from file f.
+ // addr is a user virtual address.
+ int
+ fileread(struct file *f, uint64 addr, int n)
+ {
+   int r = 0;
+
+   if(f->readable == 0)
+     return -1;
+
+   if(f->type == FD_PIPE){
+     r = piperead(f->pipe, addr, n);
+   } else if(f->type == FD_DEVICE){
+     if(f->major < 0 || f->major >= NDEV || !devsw[f->major].read)
+       return -1;
+     r = devsw[f->major].read(1, addr, n);
+   } else if(f->type == FD_INODE){
+     ilock(f->ip);
+     if((r = readi(f->ip, 1, addr, f->off, n)) > 0)
+       f->off += r;
+     iunlock(f->ip);
+   } else {
+     panic("fileread");
+   }
+
+   return r;
+ }
+=======
+ // Read from file f.
+ // addr is a user virtual address.
+ int
+ fileread(struct file *f, uint64 addr, int n)
+ {
+   int r = 0;
+
+   if(f->readable == 0)
+     return -1;
+
+   if(f->type == FD_PIPE){
+     r = piperead(f->pipe, addr, n);
+   } else if(f->type == FD_DEVICE){
+     if(f->major < 0 || f->major >= NDEV || !devsw[f->major].read)
+       return -1;
+     r = devsw[f->major].read(1, addr, n);
+   } else if(f->type == FD_INODE){
+     ilock(f->ip);
+     if((r = readi(f->ip, 1, addr, f->off, n)) > 0)
+       f->off += r;
+     iunlock(f->ip);
+   } else {
+     panic("fileread");
+   }
+
+   if(r > 0){
+     acquire(&readcount_lock);
+     read_count += r;
+     release(&readcount_lock);
+   }
+
+   return r;
+ }
+>>>>>>> REPLACE
+
+
+<<<<<<< SEARCH
+:start_line:1
+-------
+ // System call numbers
+ #define SYS_fork    1
+ #define SYS_exit    2
+ #define SYS_wait    3
+ #define SYS_pipe    4
+ #define SYS_read    5
+ #define SYS_kill    6
+ #define SYS_exec    7
+ #define SYS_fstat   8
+ #define SYS_chdir   9
+ #define SYS_dup    10
+ #define SYS_getpid 11
+ #define SYS_sbrk   12
+ #define SYS_pause  13
+ #define SYS_uptime 14
+ #define SYS_open   15
+ #define SYS_write  16
+ #define SYS_mknod  17
+ #define SYS_unlink 18
+ #define SYS_link   19
+ #define SYS_mkdir  20
+ #define SYS_close  21
+=======
+ // System call numbers
+ #define SYS_fork    1
+ #define SYS_exit    2
+ #define SYS_wait    3
+ #define SYS_pipe    4
+ #define SYS_read    5
+ #define SYS_kill    6
+ #define SYS_exec    7
+ #define SYS_fstat   8
+ #define SYS_chdir   9
+ #define SYS_dup    10
+ #define SYS_getpid 11
+ #define SYS_sbrk   12
+ #define SYS_pause  13
+ #define SYS_uptime 14
+ #define SYS_open   15
+ #define SYS_write  16
+ #define SYS_mknod  17
+ #define SYS_unlink 18
+ #define SYS_link   19
+ #define SYS_mkdir  20
+ #define SYS_close  21
+ #define SYS_getreadcount 22
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:82
+-------
+ // Prototypes for the functions that handle system calls.
+ extern uint64 sys_fork(void);
+ extern uint64 sys_exit(void);
+ extern uint64 sys_wait(void);
+ extern uint64 sys_pipe(void);
+ extern uint64 sys_read(void);
+ extern uint64 sys_kill(void);
+ extern uint64 sys_exec(void);
+ extern uint64 sys_fstat(void);
+ extern uint64 sys_chdir(void);
+ extern uint64 sys_dup(void);
+ extern uint64 sys_getpid(void);
+ extern uint64 sys_sbrk(void);
+ extern uint64 sys_pause(void);
+ extern uint64 sys_uptime(void);
+ extern uint64 sys_open(void);
+ extern uint64 sys_write(void);
+ extern uint64 sys_mknod(void);
+ extern uint64 sys_unlink(void);
+ extern uint64 sys_link(void);
+ extern uint64 sys_mkdir(void);
+ extern uint64 sys_close(void);
+=======
+ // Prototypes for the functions that handle system calls.
+ extern uint64 sys_fork(void);
+ extern uint64 sys_exit(void);
+ extern uint64 sys_wait(void);
+ extern uint64 sys_pipe(void);
+ extern uint64 sys_read(void);
+ extern uint64 sys_kill(void);
+ extern uint64 sys_exec(void);
+ extern uint64 sys_fstat(void);
+ extern uint64 sys_chdir(void);
+ extern uint64 sys_dup(void);
+ extern uint64 sys_getpid(void);
+ extern uint64 sys_sbrk(void);
+ extern uint64 sys_pause(void);
+ extern uint64 sys_uptime(void);
+ extern uint64 sys_open(void);
+ extern uint64 sys_write(void);
+ extern uint64 sys_mknod(void);
+ extern uint64 sys_unlink(void);
+ extern uint64 sys_link(void);
+ extern uint64 sys_mkdir(void);
+ extern uint64 sys_close(void);
+ extern uint64 sys_getreadcount(void);
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:105
+-------
+ static uint64 (*syscalls[])(void) = {
+ [SYS_fork]    sys_fork,
+ [SYS_exit]    sys_exit,
+ [SYS_wait]    sys_wait,
+ [SYS_pipe]    sys_pipe,
+ [SYS_read]    sys_read,
+ [SYS_kill]    sys_kill,
+ [SYS_exec]    sys_exec,
+ [SYS_fstat]   sys_fstat,
+ [SYS_chdir]   sys_chdir,
+ [SYS_dup]     sys_dup,
+ [SYS_getpid]  sys_getpid,
+ [SYS_sbrk]    sys_sbrk,
+ [SYS_pause]   sys_pause,
+ [SYS_uptime]  sys_uptime,
+ [SYS_open]    sys_open,
+ [SYS_write]   sys_write,
+ [SYS_mknod]   sys_mknod,
+ [SYS_unlink]  sys_unlink,
+ [SYS_link]    sys_link,
+ [SYS_mkdir]   sys_mkdir,
+ [SYS_close]   sys_close,
+ };
+=======
+ static uint64 (*syscalls[])(void) = {
+ [SYS_fork]    sys_fork,
+ [SYS_exit]    sys_exit,
+ [SYS_wait]    sys_wait,
+ [SYS_pipe]    sys_pipe,
+ [SYS_read]    sys_read,
+ [SYS_kill]    sys_kill,
+ [SYS_exec]    sys_exec,
+ [SYS_fstat]   sys_fstat,
+ [SYS_chdir]   sys_chdir,
+ [SYS_dup]     sys_dup,
+ [SYS_getpid]  sys_getpid,
+ [SYS_sbrk]    sys_sbrk,
+ [SYS_pause]   sys_pause,
+ [SYS_uptime]  sys_uptime,
+ [SYS_open]    sys_open,
+ [SYS_write]   sys_write,
+ [SYS_mknod]   sys_mknod,
+ [SYS_unlink]  sys_unlink,
+ [SYS_link]    sys_link,
+ [SYS_mkdir]   sys_mkdir,
+ [SYS_close]   sys_close,
+ [SYS_getreadcount] sys_getreadcount,
+ };
+>>>>>>> REPLACE
+
+
+<<<<<<< SEARCH
+:start_line:160
+-------
+     if(r != n1){
+       // error from writei
+       break;
+     }
+     i += r;
+   }
+   ret = (i == n ? n : -1);
+ } else {
+   panic("filewrite");
+ }
+
+ return ret;
+ }
+=======
+     if(r != n1){
+       // error from writei
+       break;
+     }
+     i += r;
+   }
+   ret = (i == n ? n : -1);
+ } else {
+   panic("filewrite");
+ }
+
+ return ret;
+ }
+
+ // Return total number of bytes read since boot (protected by lock).
+ uint64
+ get_read_count(void)
+ {
+   uint64 v;
+   acquire(&readcount_lock);
+   v = read_count;
+   release(&readcount_lock);
+   return v;
+ }
+>>>>>>> REPLACE
+
+
+<<<<<<< SEARCH
+:start_line:1
+-------
+#include "types.h"
+#include "riscv.h"
+#include "defs.h"
+#include "param.h"
+#include "memlayout.h"
+#include "spinlock.h"
+#include "proc.h"
+#include "vm.h"
+=======
+#include "types.h"
+#include "riscv.h"
+#include "defs.h"
+#include "param.h"
+#include "memlayout.h"
+#include "spinlock.h"
+#include "proc.h"
+#include "vm.h"
+
+extern uint64 get_read_count(void);
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:96
+-------
+ uint64
+ sys_uptime(void)
+ {
+   uint xticks;
+
+   acquire(&tickslock);
+   xticks = ticks;
+   release(&tickslock);
+   return xticks;
+ }
+=======
+ uint64
+ sys_uptime(void)
+ {
+   uint xticks;
+
+   acquire(&tickslock);
+   xticks = ticks;
+   release(&tickslock);
+   return xticks;
+ }
+
+ uint64
+ sys_getreadcount(void)
+ {
+   return get_read_count();
+ }
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+:start_line:24
+-------
+entry("fork");
+entry("exit");
+entry("wait");
+entry("pipe");
+entry("read");
+entry("write");
+entry("close");
+entry("kill");
+entry("exec");
+entry("open");
+entry("mknod");
+entry("unlink");
+entry("fstat");
+entry("link");
+entry("mkdir");
+entry("chdir");
+entry("dup");
+entry("getpid");
+entry("sbrk");
+entry("pause");
+entry("uptime");
+=======
+entry("fork");
+entry("exit");
+entry("wait");
+entry("pipe");
+entry("read");
+entry("write");
+entry("close");
+entry("kill");
+entry("exec");
+entry("open");
+entry("mknod");
+entry("unlink");
+entry("fstat");
+entry("link");
+entry("mkdir");
+entry("chdir");
+entry("dup");
+entry("getpid");
+entry("sbrk");
+entry("pause");
+entry("uptime");
+entry("getreadcount");
+>>>>>>> REPLACE
