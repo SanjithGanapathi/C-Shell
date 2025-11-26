@@ -1,0 +1,54 @@
+{
+    "testcase": {
+        "section": "A.3",
+        "description": "Tests valid syntax with filenames/command names containing special characters permitted by the grammar.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "cmd": "/usr/bin/gcc-11 src/main.o -o a.out",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [
+                    {
+                        "text": "Invalid Syntax!",
+                        "is_re": false,
+                        "negative_match": true
+                    }
+                ],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": false
+    },
+    "events": [
+        {
+            "time": "2025-11-20T07:36:49.561087+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-20T07:36:49.561321+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, cmd='/usr/bin/gcc-11 src/main.o -o a.out', sequential_outputs=[], nonsequential_outputs=[Line(text='Invalid Syntax!', is_re=False, negative_match=True)], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-20T07:36:49.624455+05:30",
+            "type": "output",
+            "details": "/usr/bin/ld: cannot find src/main.o: No such file or directory"
+        },
+        {
+            "time": "2025-11-20T07:36:49.626140+05:30",
+            "type": "output",
+            "details": "collect2: error: ld returned 1 exit status"
+        },
+        {
+            "time": "2025-11-20T07:36:49.626234+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> /usr/bin/gcc-11 src/main.o -o a.out\n/usr/bin/ld: cannot find src/main.o: No such file or directory\r\ncollect2: error: ld returned 1 exit status\r\n<user@osntesting:~> ",
+    "py_log": "2025-11-20 07:36:46,374 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x78d7ce548050>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_b92722f5ede84b99a6942f95fcf8e8f1', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpiio5zfty:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 1819075\n    child_fd: 92\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x78f014e29c00>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-20 07:36:49,561 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:36:49.561087+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-20 07:36:49,561 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:36:49.561321+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, cmd='/usr/bin/gcc-11 src/main.o -o a.out', sequential_outputs=[], nonsequential_outputs=[Line(text='Invalid Syntax!', is_re=False, negative_match=True)], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-20 07:36:49,624 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:36:49.624455+05:30\",\n        \"type\": \"output\",\n        \"details\": \"/usr/bin/ld: cannot find src/main.o: No such file or directory\"\n    }\n2025-11-20 07:36:49,626 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:36:49.626140+05:30\",\n        \"type\": \"output\",\n        \"details\": \"collect2: error: ld returned 1 exit status\"\n    }\n2025-11-20 07:36:49,626 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:36:49.626234+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-20 07:36:49,958 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x78d7ce548050>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_b92722f5ede84b99a6942f95fcf8e8f1', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpiio5zfty:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~> '\n    match: <re.Match object; span=(0, 20), match='<user@osntesting:~> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 1819075\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x78f014e29c00>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-20 07:36:49,965 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - INFO - Cleaned up temp_dir: /tmp/tmpiio5zfty\n"
+}

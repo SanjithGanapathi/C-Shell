@@ -1,0 +1,14 @@
+{
+    "test_id": "test_25",
+    "section": "A.3",
+    "description": "Tests for 'Invalid Syntax!' with consecutive output redirection operators.",
+    "passed": false,
+    "failure": {
+        "step_index": 0,
+        "command": "a > > f1",
+        "reason": "Insufficient output lines for sequential check.",
+        "expected": 1,
+        "actual": 0
+    },
+    "score": 0.0
+}

@@ -1,0 +1,147 @@
+{
+    "testcase": {
+        "section": "D.2",
+        "description": "Tests a background command that involves both a pipe and output redirection.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "cmd": "ls test | sort -r > bg_out.txt &",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [
+                    {
+                        "text": "\\\\[1\\\\] \\\\d+",
+                        "is_re": true,
+                        "negative_match": false
+                    }
+                ],
+                "ignore_output": true,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "cmd": "cat bg_out.txt",
+                "sequential_outputs": [
+                    {
+                        "text": "folder3",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "folder2",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "folder1",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "file5.txt",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "file4.txt",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [
+                    {
+                        "text": "ls with pid \\\\d+ exited normally",
+                        "is_re": true,
+                        "negative_match": false
+                    }
+                ],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "cmd": "rm bg_out.txt",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": true,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": true
+    },
+    "events": [
+        {
+            "time": "2025-11-20T07:51:32.661713+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-20T07:51:32.661984+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, cmd='ls test | sort -r > bg_out.txt &', sequential_outputs=[], nonsequential_outputs=[Line(text='\\\\\\\\[1\\\\\\\\] \\\\\\\\d+', is_re=True, negative_match=False)], ignore_output=True, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-20T07:51:32.721719+05:30",
+            "type": "output",
+            "details": "[1] 28"
+        },
+        {
+            "time": "2025-11-20T07:51:32.722016+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-20T07:51:32.722325+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, cmd='cat bg_out.txt', sequential_outputs=[Line(text='folder3', is_re=False, negative_match=False), Line(text='folder2', is_re=False, negative_match=False), Line(text='folder1', is_re=False, negative_match=False), Line(text='file5.txt', is_re=False, negative_match=False), Line(text='file4.txt', is_re=False, negative_match=False)], nonsequential_outputs=[Line(text='ls with pid \\\\\\\\d+ exited normally', is_re=True, negative_match=False)], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-20T07:51:32.792062+05:30",
+            "type": "output",
+            "details": "ls test & with pid 28 exited normally"
+        },
+        {
+            "time": "2025-11-20T07:51:32.792421+05:30",
+            "type": "output",
+            "details": "folder3"
+        },
+        {
+            "time": "2025-11-20T07:51:32.792670+05:30",
+            "type": "output",
+            "details": "folder2"
+        },
+        {
+            "time": "2025-11-20T07:51:32.792860+05:30",
+            "type": "output",
+            "details": "folder1"
+        },
+        {
+            "time": "2025-11-20T07:51:32.793061+05:30",
+            "type": "output",
+            "details": "file5.txt"
+        },
+        {
+            "time": "2025-11-20T07:51:32.793235+05:30",
+            "type": "output",
+            "details": "file4.txt"
+        },
+        {
+            "time": "2025-11-20T07:51:32.793408+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-20T07:51:32.793600+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, cmd='rm bg_out.txt', sequential_outputs=[], nonsequential_outputs=[], ignore_output=True, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-20T07:51:32.857962+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> ls test | sort -r > bg_out.txt &\n[1] 28\r\n<user@osntesting:~> cat bg_out.txt\nls test & with pid 28 exited normally\r\nfolder3\r\nfolder2\r\nfolder1\r\nfile5.txt\r\nfile4.txt\r\n<user@osntesting:~> rm bg_out.txt\n<user@osntesting:~> ",
+    "py_log": "2025-11-20 07:51:32,660 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x78d777341760>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_ad6f33ee498c45e8883e4b80a52854e8', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp8rt616_v:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 1748112\n    child_fd: 109\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x78f014e28940>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-20 07:51:32,661 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.661713+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-20 07:51:32,662 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.661984+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, cmd='ls test | sort -r > bg_out.txt &', sequential_outputs=[], nonsequential_outputs=[Line(text='\\\\\\\\\\\\\\\\[1\\\\\\\\\\\\\\\\] \\\\\\\\\\\\\\\\d+', is_re=True, negative_match=False)], ignore_output=True, cwd_after=None)\"\n    }\n2025-11-20 07:51:32,721 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.721719+05:30\",\n        \"type\": \"output\",\n        \"details\": \"[1] 28\"\n    }\n2025-11-20 07:51:32,722 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.722016+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-20 07:51:32,722 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.722325+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, cmd='cat bg_out.txt', sequential_outputs=[Line(text='folder3', is_re=False, negative_match=False), Line(text='folder2', is_re=False, negative_match=False), Line(text='folder1', is_re=False, negative_match=False), Line(text='file5.txt', is_re=False, negative_match=False), Line(text='file4.txt', is_re=False, negative_match=False)], nonsequential_outputs=[Line(text='ls with pid \\\\\\\\\\\\\\\\d+ exited normally', is_re=True, negative_match=False)], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-20 07:51:32,792 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.792062+05:30\",\n        \"type\": \"output\",\n        \"details\": \"ls test & with pid 28 exited normally\"\n    }\n2025-11-20 07:51:32,792 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.792421+05:30\",\n        \"type\": \"output\",\n        \"details\": \"folder3\"\n    }\n2025-11-20 07:51:32,792 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.792670+05:30\",\n        \"type\": \"output\",\n        \"details\": \"folder2\"\n    }\n2025-11-20 07:51:32,792 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.792860+05:30\",\n        \"type\": \"output\",\n        \"details\": \"folder1\"\n    }\n2025-11-20 07:51:32,793 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.793061+05:30\",\n        \"type\": \"output\",\n        \"details\": \"file5.txt\"\n    }\n2025-11-20 07:51:32,793 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.793235+05:30\",\n        \"type\": \"output\",\n        \"details\": \"file4.txt\"\n    }\n2025-11-20 07:51:32,793 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.793408+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-20 07:51:32,793 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.793600+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, cmd='rm bg_out.txt', sequential_outputs=[], nonsequential_outputs=[], ignore_output=True, cwd_after=None)\"\n    }\n2025-11-20 07:51:32,858 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-20T07:51:32.857962+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-20 07:51:36,291 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x78d777341760>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_ad6f33ee498c45e8883e4b80a52854e8', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp8rt616_v:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~> '\n    match: <re.Match object; span=(0, 20), match='<user@osntesting:~> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 1748112\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x78f014e28940>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-20 07:51:36,305 - tester.f1bd36b0-5ec6-4cec-94aa-7b0469a23eea - INFO - Cleaned up temp_dir: /tmp/tmp8rt616_v\n"
+}

@@ -1,0 +1,14 @@
+{
+    "test_id": "test_91",
+    "section": "C.4",
+    "description": "Tests a pipeline with input redirection on the first command and output redirection on the last.",
+    "passed": false,
+    "failure": {
+        "step_index": 1,
+        "command": "cat pipe_redir_output.txt",
+        "reason": "Mismatch at sequential line 0",
+        "expected": "^51$",
+        "actual": "0"
+    },
+    "score": 0.0
+}

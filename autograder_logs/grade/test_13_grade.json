@@ -1,0 +1,14 @@
+{
+    "test_id": "test_13",
+    "section": "A.3",
+    "description": "Tests for 'Invalid Syntax!' with a trailing semicolon operator.",
+    "passed": false,
+    "failure": {
+        "step_index": 0,
+        "command": "a ;",
+        "reason": "Mismatch at sequential line 0",
+        "expected": "Invalid Syntax!",
+        "actual": "Command not found!"
+    },
+    "score": 0.0
+}

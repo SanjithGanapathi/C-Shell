@@ -1,0 +1,8 @@
+{
+    "test_id": "test_9",
+    "section": "A.3",
+    "description": "Tests valid syntax with various operators and no spaces between tokens.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

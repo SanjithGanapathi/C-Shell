@@ -1,0 +1,14 @@
+{
+    "test_id": "test_97",
+    "section": "D.1",
+    "description": "Tests that sequential execution continues after a command fails.",
+    "passed": false,
+    "failure": {
+        "step_index": 0,
+        "command": "non_existent_command ; echo second command runs",
+        "reason": "Insufficient output lines for sequential check.",
+        "expected": 2,
+        "actual": 1
+    },
+    "score": 0.0
+}
