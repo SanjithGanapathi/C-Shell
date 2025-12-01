@@ -1,0 +1,14 @@
+{
+    "test_id": "test_22",
+    "section": "A.3",
+    "description": "Tests for 'Invalid Syntax!' with a trailing pipe operator.",
+    "passed": false,
+    "failure": {
+        "step_index": 0,
+        "command": "a |",
+        "reason": "Incorrect number of output lines for sequential check.",
+        "expected": 1,
+        "actual": 0
+    },
+    "score": 0.0
+}

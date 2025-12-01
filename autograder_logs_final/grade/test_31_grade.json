@@ -1,0 +1,8 @@
+{
+    "test_id": "test_31",
+    "section": "A.3",
+    "description": "Tests valid syntax where multiple I/O redirections are used in a single command. The shell should accept this syntax.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

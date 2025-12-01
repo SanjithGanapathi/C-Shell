@@ -1,0 +1,8 @@
+{
+    "test_id": "test_110",
+    "section": "E.1",
+    "description": "Checks if activities correctly lists a single running background process.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

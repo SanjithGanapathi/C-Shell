@@ -1,0 +1,8 @@
+{
+    "test_id": "test_77",
+    "section": "C.2",
+    "description": "Tests that redirecting input from a directory results in an error.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

@@ -1,0 +1,8 @@
+{
+    "test_id": "test_124",
+    "section": "E.4",
+    "description": "Tests that 'fg' without a job number brings the most recently created job to the foreground.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

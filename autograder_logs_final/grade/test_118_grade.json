@@ -1,0 +1,14 @@
+{
+    "test_id": "test_118",
+    "section": "E.3",
+    "description": "Tests that Ctrl+D on an empty line exits the shell. Note: This does not check for the 'logout' message.",
+    "passed": false,
+    "failure": {
+        "step_index": 0,
+        "command": "Ctrl+d",
+        "reason": "Expected EOF from child.",
+        "expected": "EventType.EOF",
+        "actual": "EventType.EOF"
+    },
+    "score": 0.0
+}

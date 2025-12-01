@@ -1,0 +1,148 @@
+{
+    "testcase": {
+        "section": "B.3",
+        "description": "Tests 'log execute' with out-of-bounds indices (e.g., > history size, 0), which should result in no action.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "hop",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": true,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "hop test",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": true,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "log execute 3",
+                "sequential_outputs": [
+                    {
+                        "text": "log: Invalid Syntax!",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "log execute 0",
+                "sequential_outputs": [
+                    {
+                        "text": "log: Invalid Syntax!",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "pwd",
+                "sequential_outputs": [
+                    {
+                        "text": "/app/test",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": true
+    },
+    "events": [
+        {
+            "time": "2025-11-30T05:59:40.609592+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T05:59:40.609994+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop', sequential_outputs=[], nonsequential_outputs=[], ignore_output=True, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:59:40.684482+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T05:59:40.684869+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop test', sequential_outputs=[], nonsequential_outputs=[], ignore_output=True, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:59:40.877848+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/test> "
+        },
+        {
+            "time": "2025-11-30T05:59:40.878478+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='log execute 3', sequential_outputs=[Line(text='log: Invalid Syntax!', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:59:40.938926+05:30",
+            "type": "output",
+            "details": "log: invalid index"
+        },
+        {
+            "time": "2025-11-30T05:59:40.939360+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/test> "
+        },
+        {
+            "time": "2025-11-30T05:59:40.939657+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='log execute 0', sequential_outputs=[Line(text='log: Invalid Syntax!', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:59:41.049796+05:30",
+            "type": "output",
+            "details": "log: invalid index"
+        },
+        {
+            "time": "2025-11-30T05:59:41.050116+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/test> "
+        },
+        {
+            "time": "2025-11-30T05:59:41.050261+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='pwd', sequential_outputs=[Line(text='/app/test', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:59:41.198734+05:30",
+            "type": "output",
+            "details": "/app/test"
+        },
+        {
+            "time": "2025-11-30T05:59:41.199035+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/test> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> hop\n<user@osntesting:~> hop test\n<user@osntesting:~/test> log execute 3\nlog: invalid index\r\n<user@osntesting:~/test> log execute 0\nlog: invalid index\r\n<user@osntesting:~/test> pwd\n/app/test\r\n<user@osntesting:~/test> ",
+    "py_log": "2025-11-30 05:59:40,311 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x7984c8da9400>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_4e07d10bfe0648f3a199475212f86051', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpwdwfmonx:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 878500\n    child_fd: 210\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x79851bf22440>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 05:59:40,609 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.609592+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 05:59:40,610 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.609994+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop', sequential_outputs=[], nonsequential_outputs=[], ignore_output=True, cwd_after=None)\"\n    }\n2025-11-30 05:59:40,684 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.684482+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 05:59:40,684 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.684869+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop test', sequential_outputs=[], nonsequential_outputs=[], ignore_output=True, cwd_after=None)\"\n    }\n2025-11-30 05:59:40,878 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.877848+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/test> \"\n    }\n2025-11-30 05:59:40,878 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.878478+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='log execute 3', sequential_outputs=[Line(text='log: Invalid Syntax!', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 05:59:40,939 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.938926+05:30\",\n        \"type\": \"output\",\n        \"details\": \"log: invalid index\"\n    }\n2025-11-30 05:59:40,939 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.939360+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/test> \"\n    }\n2025-11-30 05:59:40,939 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:40.939657+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='log execute 0', sequential_outputs=[Line(text='log: Invalid Syntax!', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 05:59:41,049 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:41.049796+05:30\",\n        \"type\": \"output\",\n        \"details\": \"log: invalid index\"\n    }\n2025-11-30 05:59:41,050 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:41.050116+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/test> \"\n    }\n2025-11-30 05:59:41,050 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:41.050261+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='pwd', sequential_outputs=[Line(text='/app/test', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 05:59:41,198 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:41.198734+05:30\",\n        \"type\": \"output\",\n        \"details\": \"/app/test\"\n    }\n2025-11-30 05:59:41,199 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:41.199035+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/test> \"\n    }\n2025-11-30 05:59:41,893 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x7984c8da9400>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_4e07d10bfe0648f3a199475212f86051', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpwdwfmonx:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~/test> '\n    match: <re.Match object; span=(0, 25), match='<user@osntesting:~/test> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 878500\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x79851bf22440>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 05:59:41,948 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Cleaned up temp_dir: /tmp/tmpwdwfmonx\n"
+}

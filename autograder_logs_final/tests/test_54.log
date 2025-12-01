@@ -1,0 +1,167 @@
+{
+    "testcase": {
+        "section": "B.2",
+        "description": "Tests that reveal lists files in lexicographical (ASCII) order.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "mkdir sort_test",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "hop sort_test",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": "~/sort_test"
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "touch B a _ 1",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "reveal -l",
+                "sequential_outputs": [
+                    {
+                        "text": "1",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "B",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "_",
+                        "is_re": false,
+                        "negative_match": false
+                    },
+                    {
+                        "text": "a",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "reveal",
+                "sequential_outputs": [
+                    {
+                        "text": "1\\\\s+B\\\\s+_\\\\s+a",
+                        "is_re": true,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": true
+    },
+    "events": [
+        {
+            "time": "2025-11-30T18:24:12.863345+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T18:24:12.863968+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='mkdir sort_test', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T18:24:12.918254+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T18:24:12.918632+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop sort_test', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after='~/sort_test')"
+        },
+        {
+            "time": "2025-11-30T18:24:12.970066+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/sort_test> "
+        },
+        {
+            "time": "2025-11-30T18:24:12.970459+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='touch B a _ 1', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T18:24:13.023761+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/sort_test> "
+        },
+        {
+            "time": "2025-11-30T18:24:13.024144+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='reveal -l', sequential_outputs=[Line(text='1', is_re=False, negative_match=False), Line(text='B', is_re=False, negative_match=False), Line(text='_', is_re=False, negative_match=False), Line(text='a', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T18:24:13.075101+05:30",
+            "type": "output",
+            "details": "1"
+        },
+        {
+            "time": "2025-11-30T18:24:13.075499+05:30",
+            "type": "output",
+            "details": "B"
+        },
+        {
+            "time": "2025-11-30T18:24:13.075734+05:30",
+            "type": "output",
+            "details": "_"
+        },
+        {
+            "time": "2025-11-30T18:24:13.075921+05:30",
+            "type": "output",
+            "details": "a"
+        },
+        {
+            "time": "2025-11-30T18:24:13.076118+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/sort_test> "
+        },
+        {
+            "time": "2025-11-30T18:24:13.076328+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='reveal', sequential_outputs=[Line(text='1\\\\\\\\s+B\\\\\\\\s+_\\\\\\\\s+a', is_re=True, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T18:24:13.127515+05:30",
+            "type": "output",
+            "details": "1 B _ a "
+        },
+        {
+            "time": "2025-11-30T18:24:13.127911+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/sort_test> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> mkdir sort_test\n<user@osntesting:~> hop sort_test\n<user@osntesting:~/sort_test> touch B a _ 1\n<user@osntesting:~/sort_test> reveal -l\n1\r\nB\r\n_\r\na\r\n<user@osntesting:~/sort_test> reveal\n1 B _ a \r\n<user@osntesting:~/sort_test> ",
+    "py_log": "2025-11-30 18:24:11,928 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x7717646cede0>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_0fea5e33c3704144bc4ec78a59d3b1ca', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp_y6r8j9p:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 1194711\n    child_fd: 26\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x771766fded40>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 18:24:12,863 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:12.863345+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 18:24:12,864 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:12.863968+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='mkdir sort_test', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 18:24:12,918 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:12.918254+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 18:24:12,918 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:12.918632+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop sort_test', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after='~/sort_test')\"\n    }\n2025-11-30 18:24:12,970 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:12.970066+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/sort_test> \"\n    }\n2025-11-30 18:24:12,970 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:12.970459+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='touch B a _ 1', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 18:24:13,023 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.023761+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/sort_test> \"\n    }\n2025-11-30 18:24:13,024 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.024144+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='reveal -l', sequential_outputs=[Line(text='1', is_re=False, negative_match=False), Line(text='B', is_re=False, negative_match=False), Line(text='_', is_re=False, negative_match=False), Line(text='a', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 18:24:13,075 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.075101+05:30\",\n        \"type\": \"output\",\n        \"details\": \"1\"\n    }\n2025-11-30 18:24:13,075 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.075499+05:30\",\n        \"type\": \"output\",\n        \"details\": \"B\"\n    }\n2025-11-30 18:24:13,075 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.075734+05:30\",\n        \"type\": \"output\",\n        \"details\": \"_\"\n    }\n2025-11-30 18:24:13,075 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.075921+05:30\",\n        \"type\": \"output\",\n        \"details\": \"a\"\n    }\n2025-11-30 18:24:13,076 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.076118+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/sort_test> \"\n    }\n2025-11-30 18:24:13,076 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.076328+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='reveal', sequential_outputs=[Line(text='1\\\\\\\\\\\\\\\\s+B\\\\\\\\\\\\\\\\s+_\\\\\\\\\\\\\\\\s+a', is_re=True, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 18:24:13,127 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.127515+05:30\",\n        \"type\": \"output\",\n        \"details\": \"1 B _ a \"\n    }\n2025-11-30 18:24:13,127 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T18:24:13.127911+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/sort_test> \"\n    }\n2025-11-30 18:24:13,634 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x7717646cede0>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_0fea5e33c3704144bc4ec78a59d3b1ca', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp_y6r8j9p:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~/sort_test> '\n    match: <re.Match object; span=(0, 30), match='<user@osntesting:~/sort_test> '>\n    match_index: 0\n    exitstatus: None\n    flag_eof: False\n    pid: 1194711\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x771766fded40>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 18:24:13,635 - tester.99a7db06-efc6-4492-9e4e-7a55fea76694 - INFO - Cleaned up temp_dir: /tmp/tmp_y6r8j9p\n"
+}

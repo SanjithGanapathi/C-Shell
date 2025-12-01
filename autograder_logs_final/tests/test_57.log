@@ -1,0 +1,50 @@
+{
+    "testcase": {
+        "section": "B.2",
+        "description": "Tests the default (no flags) output format of reveal, which should be space-separated and lexicographically sorted.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "reveal test/folder3",
+                "sequential_outputs": [
+                    {
+                        "text": "^file7.txt\\\\s+file8.txt\\\\s+file9.txt\\\\s*$",
+                        "is_re": true,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": true
+    },
+    "events": [
+        {
+            "time": "2025-11-30T05:59:22.623094+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T05:59:22.623349+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='reveal test/folder3', sequential_outputs=[Line(text='^file7.txt\\\\\\\\s+file8.txt\\\\\\\\s+file9.txt\\\\\\\\s*$', is_re=True, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:59:22.709143+05:30",
+            "type": "output",
+            "details": "file7.txt file8.txt file9.txt "
+        },
+        {
+            "time": "2025-11-30T05:59:22.709525+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> reveal test/folder3\nfile7.txt file8.txt file9.txt \r\n<user@osntesting:~> ",
+    "py_log": "2025-11-30 05:59:21,913 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x7984c90ecb00>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_57c6aab66aed4b4ba03955ba5e60f3b4', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp799lepti:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 871880\n    child_fd: 185\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x7985186407c0>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 05:59:22,623 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:22.623094+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 05:59:22,623 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:22.623349+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='reveal test/folder3', sequential_outputs=[Line(text='^file7.txt\\\\\\\\\\\\\\\\s+file8.txt\\\\\\\\\\\\\\\\s+file9.txt\\\\\\\\\\\\\\\\s*$', is_re=True, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 05:59:22,709 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:22.709143+05:30\",\n        \"type\": \"output\",\n        \"details\": \"file7.txt file8.txt file9.txt \"\n    }\n2025-11-30 05:59:22,709 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:59:22.709525+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 05:59:23,281 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x7984c90ecb00>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_57c6aab66aed4b4ba03955ba5e60f3b4', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp799lepti:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~> '\n    match: <re.Match object; span=(0, 20), match='<user@osntesting:~> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 871880\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x7985186407c0>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 05:59:23,296 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Cleaned up temp_dir: /tmp/tmp799lepti\n"
+}

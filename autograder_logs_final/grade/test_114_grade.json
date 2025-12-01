@@ -1,0 +1,8 @@
+{
+    "test_id": "test_114",
+    "section": "E.2",
+    "description": "Tests ping command with a PID that does not exist.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

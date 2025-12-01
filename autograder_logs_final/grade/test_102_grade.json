@@ -1,0 +1,14 @@
+{
+    "test_id": "test_102",
+    "section": "D.2",
+    "description": "Tests that a background command that fails produces an 'exited abnormally' message.",
+    "passed": false,
+    "failure": {
+        "step_index": 1,
+        "command": "echo check abnormal exit",
+        "reason": "Missing required non-sequential output: 'false with pid \\\\d+ exited abnormally'",
+        "expected": null,
+        "actual": "false & with pid 28 exited normally\r\ncheck abnormal exit"
+    },
+    "score": 0.0
+}

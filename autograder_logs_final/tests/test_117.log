@@ -1,0 +1,80 @@
+{
+    "testcase": {
+        "section": "E.3",
+        "description": "Tests that Ctrl+C (SIGINT) terminates the foreground process but not the shell.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "skip_prompt_check": true,
+                "cmd": "sleep 5",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "code": "c",
+                "output": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "echo Shell is still alive",
+                "sequential_outputs": [
+                    {
+                        "text": "Shell is still alive",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": false
+    },
+    "events": [
+        {
+            "time": "2025-11-30T15:16:27.714143+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T15:16:27.714328+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=True, cmd='sleep 5', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T15:16:27.764542+05:30",
+            "type": "input",
+            "details": "ControlSignal(expect_exit=False, skip_prompt_check=False, code='c', output=None)"
+        },
+        {
+            "time": "2025-11-30T15:16:27.782829+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T15:16:27.783117+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='echo Shell is still alive', sequential_outputs=[Line(text='Shell is still alive', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T15:16:27.835538+05:30",
+            "type": "output",
+            "details": "Shell is still alive"
+        },
+        {
+            "time": "2025-11-30T15:16:27.835690+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> sleep 5\n<user@osntesting:~> echo Shell is still alive\nShell is still alive\r\n<user@osntesting:~> ",
+    "py_log": "2025-11-30 15:16:27,077 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x70b02f881bb0>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_d1041ba703594cc8992ef7c1930b3890', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpb5tohwkl:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 1339760\n    child_fd: 89\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x70b0543162c0>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 15:16:27,714 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.714143+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 15:16:27,714 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.714328+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=True, cmd='sleep 5', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 15:16:27,764 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.764542+05:30\",\n        \"type\": \"input\",\n        \"details\": \"ControlSignal(expect_exit=False, skip_prompt_check=False, code='c', output=None)\"\n    }\n2025-11-30 15:16:27,782 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Sent SIGINT to container tester_d1041ba703594cc8992ef7c1930b3890\n2025-11-30 15:16:27,782 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.782829+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 15:16:27,783 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.783117+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='echo Shell is still alive', sequential_outputs=[Line(text='Shell is still alive', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 15:16:27,835 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.835538+05:30\",\n        \"type\": \"output\",\n        \"details\": \"Shell is still alive\"\n    }\n2025-11-30 15:16:27,835 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:27.835690+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 15:16:28,245 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x70b02f881bb0>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_d1041ba703594cc8992ef7c1930b3890', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpb5tohwkl:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~> '\n    match: <re.Match object; span=(0, 20), match='<user@osntesting:~> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 1339760\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x70b0543162c0>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 15:16:28,245 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - INFO - Cleaned up temp_dir: /tmp/tmpb5tohwkl\n"
+}

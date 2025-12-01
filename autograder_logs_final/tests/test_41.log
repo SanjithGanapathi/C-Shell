@@ -1,0 +1,69 @@
+{
+    "testcase": {
+        "section": "B.1",
+        "description": "Tests hop with a complex relative path involving parent directory navigation.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "hop test/folder1/../../test/folder2",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": "~/test/folder2"
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "pwd",
+                "sequential_outputs": [
+                    {
+                        "text": "/app/test/folder2",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": true
+    },
+    "events": [
+        {
+            "time": "2025-11-30T05:58:10.962897+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T05:58:10.963341+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop test/folder1/../../test/folder2', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after='~/test/folder2')"
+        },
+        {
+            "time": "2025-11-30T05:58:11.162385+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/test/folder2> "
+        },
+        {
+            "time": "2025-11-30T05:58:11.162733+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='pwd', sequential_outputs=[Line(text='/app/test/folder2', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T05:58:11.297411+05:30",
+            "type": "output",
+            "details": "/app/test/folder2"
+        },
+        {
+            "time": "2025-11-30T05:58:11.297816+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~/test/folder2> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> hop test/folder1/../../test/folder2\n<user@osntesting:~/test/folder2> pwd\n/app/test/folder2\r\n<user@osntesting:~/test/folder2> ",
+    "py_log": "2025-11-30 05:58:10,311 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x7984c9b6ec90>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_49bef1fa2a194048a176b5e12be180a7', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp14oevymd:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 801027\n    child_fd: 121\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x798518665180>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 05:58:10,963 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:58:10.962897+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 05:58:10,963 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:58:10.963341+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='hop test/folder1/../../test/folder2', sequential_outputs=[], nonsequential_outputs=[], ignore_output=False, cwd_after='~/test/folder2')\"\n    }\n2025-11-30 05:58:11,162 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:58:11.162385+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/test/folder2> \"\n    }\n2025-11-30 05:58:11,162 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:58:11.162733+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='pwd', sequential_outputs=[Line(text='/app/test/folder2', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 05:58:11,297 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:58:11.297411+05:30\",\n        \"type\": \"output\",\n        \"details\": \"/app/test/folder2\"\n    }\n2025-11-30 05:58:11,297 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T05:58:11.297816+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~/test/folder2> \"\n    }\n2025-11-30 05:58:11,822 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x7984c9b6ec90>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_49bef1fa2a194048a176b5e12be180a7', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmp14oevymd:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~/test/folder2> '\n    match: <re.Match object; span=(0, 33), match='<user@osntesting:~/test/folder2> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 801027\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x798518665180>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 05:58:11,842 - tester.cb7e191a-e483-4b8c-9e95-71c19cf1bd02 - INFO - Cleaned up temp_dir: /tmp/tmp14oevymd\n"
+}

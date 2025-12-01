@@ -1,0 +1,14 @@
+{
+    "test_id": "test_34",
+    "section": "A.3",
+    "description": "Tests for 'Invalid Syntax!' when a command group after a semicolon starts with a redirection operator instead of a command name.",
+    "passed": false,
+    "failure": {
+        "step_index": 0,
+        "command": "command1 ; > output_file",
+        "reason": "Incorrect number of output lines for sequential check.",
+        "expected": 1,
+        "actual": 0
+    },
+    "score": 0.0
+}

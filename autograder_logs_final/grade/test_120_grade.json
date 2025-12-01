@@ -1,0 +1,8 @@
+{
+    "test_id": "test_120",
+    "section": "E.4",
+    "description": "Tests that 'bg' command resumes a stopped job in the background.",
+    "passed": true,
+    "failure": null,
+    "score": 1.0
+}

@@ -1,0 +1,14 @@
+{
+    "test_id": "test_105",
+    "section": "D.2",
+    "description": "Tests running a command with pipes in the background and checks for multiple cleanup messages.",
+    "passed": false,
+    "failure": {
+        "step_index": 1,
+        "command": "cat meow.txt",
+        "reason": "Missing required non-sequential output: '(ls\\\\s-1\\\\stest\\\\s\\\\|\\\\swc\\\\s-l\\\\s>\\\\smeow.txt|ls|wc|ls\\\\s-1\\\\stest|wc\\\\s-l\\\\s>\\\\smeow.txt) with pid \\\\d+ exited normally'",
+        "expected": null,
+        "actual": "ls -1 test & with pid 28 exited normally\r\n5"
+    },
+    "score": 0.0
+}

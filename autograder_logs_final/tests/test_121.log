@@ -1,0 +1,80 @@
+{
+    "testcase": {
+        "section": "E.4",
+        "description": "Tests that running 'bg' on an already running job produces an error.",
+        "cmds": [
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "sleep 2 &",
+                "sequential_outputs": [],
+                "nonsequential_outputs": [
+                    {
+                        "text": "\\\\[1\\\\] \\\\d+",
+                        "is_re": true,
+                        "negative_match": false
+                    }
+                ],
+                "ignore_output": false,
+                "cwd_after": null
+            },
+            {
+                "expect_exit": false,
+                "skip_prompt_check": false,
+                "cmd": "bg 1",
+                "sequential_outputs": [
+                    {
+                        "text": "Job already running",
+                        "is_re": false,
+                        "negative_match": false
+                    }
+                ],
+                "nonsequential_outputs": [],
+                "ignore_output": false,
+                "cwd_after": null
+            }
+        ],
+        "timeout": 2.0,
+        "strict_prompt": false,
+        "requires_test_folder": false
+    },
+    "events": [
+        {
+            "time": "2025-11-30T15:16:33.190490+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T15:16:33.190778+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='sleep 2 &', sequential_outputs=[], nonsequential_outputs=[Line(text='\\\\\\\\[1\\\\\\\\] \\\\\\\\d+', is_re=True, negative_match=False)], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T15:16:33.242787+05:30",
+            "type": "output",
+            "details": "[1] 28"
+        },
+        {
+            "time": "2025-11-30T15:16:33.242898+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        },
+        {
+            "time": "2025-11-30T15:16:33.242984+05:30",
+            "type": "input",
+            "details": "GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='bg 1', sequential_outputs=[Line(text='Job already running', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)"
+        },
+        {
+            "time": "2025-11-30T15:16:33.293678+05:30",
+            "type": "output",
+            "details": "Job already running"
+        },
+        {
+            "time": "2025-11-30T15:16:33.293783+05:30",
+            "type": "output",
+            "details": "<user@osntesting:~> "
+        }
+    ],
+    "raw_log": "##### START RAW OUTPUT #####\n<user@osntesting:~> sleep 2 &\n[1] 28\r\n<user@osntesting:~> bg 1\nJob already running\r\n<user@osntesting:~> ",
+    "py_log": "2025-11-30 15:16:32,688 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - INFO - Spawned child:\n    <pexpect.pty_spawn.spawn object at 0x70b02e2d68d0>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_2a0554940e46405c8fb516debca725a3', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpy8851ggh:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: None\n    match: None\n    match_index: None\n    exitstatus: None\n    flag_eof: False\n    pid: 1357646\n    child_fd: 139\n    closed: False\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x70b054556680>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 15:16:33,190 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.190490+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 15:16:33,190 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.190778+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='sleep 2 &', sequential_outputs=[], nonsequential_outputs=[Line(text='\\\\\\\\\\\\\\\\[1\\\\\\\\\\\\\\\\] \\\\\\\\\\\\\\\\d+', is_re=True, negative_match=False)], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 15:16:33,242 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.242787+05:30\",\n        \"type\": \"output\",\n        \"details\": \"[1] 28\"\n    }\n2025-11-30 15:16:33,242 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.242898+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 15:16:33,243 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.242984+05:30\",\n        \"type\": \"input\",\n        \"details\": \"GenericCmd(expect_exit=False, skip_prompt_check=False, cmd='bg 1', sequential_outputs=[Line(text='Job already running', is_re=False, negative_match=False)], nonsequential_outputs=[], ignore_output=False, cwd_after=None)\"\n    }\n2025-11-30 15:16:33,293 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.293678+05:30\",\n        \"type\": \"output\",\n        \"details\": \"Job already running\"\n    }\n2025-11-30 15:16:33,293 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - DEBUG - Received event:\n    {\n        \"time\": \"2025-11-30T15:16:33.293783+05:30\",\n        \"type\": \"output\",\n        \"details\": \"<user@osntesting:~> \"\n    }\n2025-11-30 15:16:33,699 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - INFO - Finished running testcase. Child info at exit:\n    <pexpect.pty_spawn.spawn object at 0x70b02e2d68d0>\n    command: /usr/bin/docker\n    args: [b'/usr/bin/docker', b'run', b'--name', b'tester_2a0554940e46405c8fb516debca725a3', b'-i', b'-t', b'--rm', b'--init', b'-h', b'osntesting', b'-v', b'/tmp/tmpy8851ggh:/app', b'-w', b'/app', b'shell_tester:latest', b'/app/shell.out']\n    buffer (last 100 chars): ''\n    before (last 100 chars): ''\n    after: '<user@osntesting:~> '\n    match: <re.Match object; span=(0, 20), match='<user@osntesting:~> '>\n    match_index: 0\n    exitstatus: 129\n    flag_eof: False\n    pid: 1357646\n    child_fd: -1\n    closed: True\n    timeout: 2.0\n    delimiter: <class 'pexpect.exceptions.EOF'>\n    logfile: <tester.FlexibleIO object at 0x70b054556680>\n    logfile_read: None\n    logfile_send: None\n    maxread: 2000\n    ignorecase: False\n    searchwindowsize: None\n    delaybeforesend: 0.05\n    delayafterclose: 0.1\n    delayafterterminate: 0.1\n2025-11-30 15:16:33,699 - tester.cc9cbef9-d7bd-4928-a0a5-716f67116230 - INFO - Cleaned up temp_dir: /tmp/tmpy8851ggh\n"
+}
