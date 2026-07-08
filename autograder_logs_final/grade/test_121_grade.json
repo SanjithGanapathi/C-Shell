@@ -1,8 +1,0 @@
-{
-    "test_id": "test_121",
-    "section": "E.4",
-    "description": "Tests that running 'bg' on an already running job produces an error.",
-    "passed": true,
-    "failure": null,
-    "score": 1.0
-}
